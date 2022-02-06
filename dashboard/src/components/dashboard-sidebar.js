@@ -15,7 +15,7 @@ import { Users as UsersIcon } from '../icons/users';
 import { XCircle as XCircleIcon } from '../icons/x-circle';
 import { Logo } from './logo';
 import { NavItem } from './nav-item';
-
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 const items = [
   {
     href: '/',
@@ -23,9 +23,9 @@ const items = [
     title: 'Dashboard'
   },
   {
-    href: '/products',
-    icon: (<ShoppingBagIcon fontSize="small" />),
-    title: 'Rental Aggrements'
+    href: '/aggrements',
+    icon: (<ReceiptLongIcon fontSize="small" />),
+    title: 'Aggrements'
   },
   {
     href: '/account',
@@ -66,19 +66,14 @@ export const DashboardSidebar = (props) => {
         }}
       >
         <div>
-          <Box sx={{ p: 3 }}>
+          <Box >
             <NextLink
               href="/"
               passHref
             >
-              <a>
-                <Logo
-                  sx={{
-                    height: 42,
-                    width: 42
-                  }}
-                />
-              </a>
+              <center>
+                <img style={{ width: '150px' }} src="https://res.cloudinary.com/dx9dnqzaj/image/upload/v1644148677/leagalit/unnamed-removebg-preview_ojc7um.png" />
+              </center>
             </NextLink>
           </Box>
           
