@@ -19,6 +19,7 @@ import {
   Step,
   StepLabel,
   InputAdornment,
+  Divider,
 } from "@mui/material";
 import { DashboardLayout } from "../components/dashboard-layout";
 
@@ -303,14 +304,22 @@ const Aggrements = () => {
                 <Typography sx={{ mt: 1 }} variant="h5">
                   Landlord Information
                 </Typography>
+
                 <TextField
-                  focused
-                  sx={{ mt: 2 }}
+                  sx={{ my: 3 }}
                   fullWidth
-                  value="Shivanshu Gupta"
-                  label="Landlord Name"
+                  label="Select Profile"
+                  select
                   variant="outlined"
-                />
+                >
+                  <MenuItem value="Profile Title 1">Profile Title 1</MenuItem>
+                  <MenuItem value="Profile Title 2">Profile Title 2</MenuItem>
+                  <MenuItem value="Profile Title 3">Profile Title 3</MenuItem>
+                  <MenuItem value="Profile Title 4">Profile Title 4</MenuItem>
+                  <MenuItem value="Profile Title 5">Profile Title 5</MenuItem>
+                </TextField>
+                <Divider sx={{ color: "#6B7280", fontSize: "1.25rem", my: 2 }}>OR</Divider>
+                <TextField sx={{ mt: 2 }} fullWidth label="Landlord Name" variant="outlined" />
 
                 <select style={{ padding: "20px", width: "100%", marginTop: "20px" }}>
                   <option value="Andhra Pradesh">Andhra Pradesh</option>
@@ -361,19 +370,9 @@ const Aggrements = () => {
 
                 <TextField sx={{ mt: 2 }} fullWidth label="City" variant="outlined" />
 
-                <TextField
-                  sx={{ mt: 2 }}
-                  fullWidth
-                  label="Landloard Address 1"
-                  variant="outlined"
-                />
+                <TextField sx={{ mt: 2 }} fullWidth label="Landlord Address 1" variant="outlined" />
 
-                <TextField
-                  sx={{ mt: 2 }}
-                  fullWidth
-                  label="Landloard Address 2"
-                  variant="outlined"
-                />
+                <TextField sx={{ mt: 2 }} fullWidth label="Landlord Address 2" variant="outlined" />
               </>
             ) : steps === 3 ? (
               <>
