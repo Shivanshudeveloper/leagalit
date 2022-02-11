@@ -104,7 +104,7 @@ const Profiles = () => {
             <Typography sx={{ mt: 1 }} variant="h5">
               Add New Profile
             </Typography>
-            <TextField sx={{ mt: 1 }} fullWidth label="Profile Title" variant="outlined" />
+            <TextField sx={{ mt: 1 }} fullWidth label="Title" variant="outlined" />
             <TextField sx={{ mt: 2 }} fullWidth label="Landlord Name" variant="outlined" />
 
             <select style={{ padding: "20px", width: "100%", marginTop: "10px" }}>
@@ -214,9 +214,9 @@ const Profiles = () => {
                   <TableCell component="th" scope="row">
                     1
                   </TableCell>
-                  <TableCell align="center">Profile Title</TableCell>
-                  <TableCell align="center">Shivanshu Gupta</TableCell>
-                  <TableCell align="center">CityName/StateName</TableCell>
+                  <TableCell align="center">Profile Title 1</TableCell>
+                  <TableCell align="center">Test Name 1</TableCell>
+                  <TableCell align="center">Karnataka</TableCell>
                   <TableCell align="center">06-02-2022</TableCell>
                   <TableCell align="center">
                     <Tooltip title="View">
@@ -238,8 +238,8 @@ const Profiles = () => {
                     2
                   </TableCell>
                   <TableCell align="center">Profile Title 2</TableCell>
-                  <TableCell align="center">Shivanshu Gupta</TableCell>
-                  <TableCell align="center">CityName/StateName</TableCell>
+                  <TableCell align="center">Test Name 2</TableCell>
+                  <TableCell align="center">Uttar Pradesh</TableCell>
                   <TableCell align="center">06-02-2022</TableCell>
                   <TableCell align="center">
                     <Tooltip title="View">
@@ -261,8 +261,8 @@ const Profiles = () => {
                     3
                   </TableCell>
                   <TableCell align="center">Profile Title 3</TableCell>
-                  <TableCell align="center">Shivanshu Gupta</TableCell>
-                  <TableCell align="center">CityName/StateName</TableCell>
+                  <TableCell align="center">Test Name 3</TableCell>
+                  <TableCell align="center">Delhi</TableCell>
                   <TableCell align="center">06-02-2022</TableCell>
                   <TableCell align="center">
                     <Tooltip title="View">
@@ -284,8 +284,8 @@ const Profiles = () => {
                     4
                   </TableCell>
                   <TableCell align="center">Profile Title 4</TableCell>
-                  <TableCell align="center">Shivanshu Gupta</TableCell>
-                  <TableCell align="center">CityName/StateName</TableCell>
+                  <TableCell align="center">Test Name 4</TableCell>
+                  <TableCell align="center">Noida</TableCell>
                   <TableCell align="center">06-02-2022</TableCell>
                   <TableCell align="center">
                     <Tooltip title="View">
