@@ -14,6 +14,7 @@ import {
   Typography
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { auth } from "../Firebase/index";
 
 const Register = () => {
   const router = useRouter();
@@ -55,8 +56,22 @@ const Register = () => {
           'This field must be checked'
         )
     }),
-    onSubmit: () => {
-      router.push('/');
+    onSubmit: (values) => {
+
+      auth.createUserWithEmailAndPassword(values.email, values.password)
+        .then((result) => {
+          var user = result.user;
+
+          sessionStorage.setItem("userId", user.uid);
+          sessionStorage.setItem("userEmail", user.email);
+
+          router.push('/');
+
+        })
+        .catch(function (error) {
+          var errorMessage = error.message;
+          console.log(errorMessage);
+        });
     }
   });
 

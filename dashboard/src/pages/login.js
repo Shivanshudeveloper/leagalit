@@ -7,6 +7,7 @@ import { Box, Button, Container, Grid, Link, TextField, Typography } from '@mui/
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { Facebook as FacebookIcon } from '../icons/facebook';
 import { Google as GoogleIcon } from '../icons/google';
+import { auth, googleProvider, facebookProvider } from "../Firebase/index";
 
 const Login = () => {
   const router = useRouter();
@@ -29,10 +30,65 @@ const Login = () => {
         .required(
           'Password is required')
     }),
-    onSubmit: () => {
-      router.push('/');
+    onSubmit: (values) => {
+      // When the form gets submitted signup the user with the given email and password
+      auth.signInWithEmailAndPassword(values.email, values.password)
+        .then(() => {
+
+          auth.onAuthStateChanged(function (user) {
+            if (user) {
+              sessionStorage.setItem("userId", user.uid);
+              sessionStorage.setItem("userEmail", user.email);
+            }
+          });
+
+          router.push('/');
+
+        })
+        .catch(function (error) {
+          var errorMessage = error.message;
+          console.log(errorMessage);
+        });
     }
   });
+
+
+  // Authentication with Google and Facebook
+  function signInWithGoogle() {
+    auth
+      .signInWithPopup(googleProvider)
+      .then(function (result) {
+        if (result.user) {
+          let user = result.user
+
+          sessionStorage.setItem("userId", user.uid);
+          sessionStorage.setItem("userEmail", user.email);
+          router.push('/');
+        }
+      })
+      .catch(function (error) {
+        var errorMessage = error.message;
+        console.log(errorMessage);
+      });
+  }
+
+  function signInWithFacebook() {
+    auth
+      .signInWithPopup(facebookProvider)
+      .then(function (result) {
+        if (result.user) {
+          let user = result.user
+
+          sessionStorage.setItem("userId", user.uid);
+          sessionStorage.setItem("userEmail", user.email);
+          router.push('/');
+        }
+      })
+      .catch(function (error) {
+        var errorMessage = error.message;
+        console.log(errorMessage);
+      });
+  }
 
   return (
     <>
@@ -81,6 +137,7 @@ const Login = () => {
                   onClick={formik.handleSubmit}
                   size="large"
                   variant="contained"
+                  onClick={signInWithFacebook}
                 >
                   Login with Facebook
                 </Button>
@@ -97,6 +154,7 @@ const Login = () => {
                   onClick={formik.handleSubmit}
                   size="large"
                   variant="contained"
+                  onClick={signInWithGoogle}
                 >
                   Login with Google
                 </Button>

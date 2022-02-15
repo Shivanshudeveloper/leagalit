@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Head from "next/head";
 import {
   Box,
@@ -42,6 +42,9 @@ import { number } from "yup";
 
 import NumberFormat from "react-number-format";
 import { borderRadius, typography } from "@mui/system";
+
+import useSessionStorage from "src/hooks/useSessionStorage";
+import axios from "axios";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="left" ref={ref} {...props} />;
@@ -113,6 +116,7 @@ const NumberFormatCustom = React.forwardRef(function NumberFormatCustom(props, r
 });
 
 const Aggrements = () => {
+  const userId = useSessionStorage('userId')
   const [open, setOpen] = React.useState(false);
   const handleClickOpen = () => {
     setOpen(true);
@@ -232,6 +236,55 @@ const Aggrements = () => {
     });
   };
 
+  const [profiles, setProfiles] = useState()
+  useEffect(async () => {
+    if (!userId)
+      return
+
+    let baseURL = `http://localhost:5000/api/v1/main/profiles/${userId}`;
+
+    await axios.get(baseURL)
+      .then((res) => {
+        setProfiles(res.data)
+      })
+      .catch((err) => { throw err })
+
+  }, [userId])
+
+  let [selectedProfile, setSelectedProfile] = useState()
+  let [title, setTitle] = useState("")
+  let [landlordName, setLandlordName] = useState("")
+  let [city, setCity] = useState("")
+  let [state, setState] = useState("Andhra Pradesh")
+  let [pincode, setPincode] = useState("")
+  let [address1, setAddress1] = useState("")
+  let [address2, setAddress2] = useState("")
+
+  useEffect(async () => {
+
+    if (!selectedProfile)
+      return
+
+    let baseURL = `http://localhost:5000/api/v1/main/getProfile/${selectedProfile}`;
+
+    await axios.get(baseURL)
+      .then((res) => {
+        let data = res.data
+
+        setTitle(data.title)
+        setLandlordName(data.landlordName)
+        setCity(data.city)
+        setState(data.state)
+        setAddress1(data.address1)
+        setAddress2(data.address2)
+        setPincode(data.pincode)
+      })
+      .catch((err) => { throw err })
+
+
+  }, [selectedProfile])
+
+
   return (
     <>
       <Dialog fullScreen open={open} onClose={handleClose} TransitionComponent={Transition}>
@@ -311,17 +364,22 @@ const Aggrements = () => {
                   label="Select Profile"
                   select
                   variant="outlined"
+                  value={selectedProfile}
+                  onChange={(e) => {
+                    setSelectedProfile(e.target.value)
+                  }}
                 >
-                  <MenuItem value="Profile Title 1">Profile Title 1</MenuItem>
-                  <MenuItem value="Profile Title 2">Profile Title 2</MenuItem>
-                  <MenuItem value="Profile Title 3">Profile Title 3</MenuItem>
-                  <MenuItem value="Profile Title 4">Profile Title 4</MenuItem>
-                  <MenuItem value="Profile Title 5">Profile Title 5</MenuItem>
+                  {/* Map all the profiles to the menu */}
+                  {profiles?.map((profile, i) => {
+                    console.log(profile._id)
+                    return <MenuItem key={profile._id} value={profile._id}>{profile.title}</MenuItem>
+                  })}
                 </TextField>
                 <Divider sx={{ color: "#6B7280", fontSize: "1.25rem", my: 2 }}>OR</Divider>
-                <TextField sx={{ mt: 2 }} fullWidth label="Landlord Name" variant="outlined" />
 
-                <select style={{ padding: "20px", width: "100%", marginTop: "20px" }}>
+                <TextField value={landlordName} onChange={(e) => setLandlordName(e.target.value)} sx={{ mt: 2 }} fullWidth label="Landlord Name" variant="outlined" />
+
+                <select value={state} onChange={(e) => setState(e.target.value)} style={{ padding: "20px", width: "100%", marginTop: "20px" }}>
                   <option value="Andhra Pradesh">Andhra Pradesh</option>
                   <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
                   <option value="Arunachal Pradesh">Arunachal Pradesh</option>
@@ -361,6 +419,7 @@ const Aggrements = () => {
                 </select>
 
                 <TextField
+                  value={pincode} onChange={(e) => setPincode(e.target.value)}
                   sx={{ mt: 2 }}
                   fullWidth
                   type="text"
@@ -368,11 +427,11 @@ const Aggrements = () => {
                   variant="outlined"
                 />
 
-                <TextField sx={{ mt: 2 }} fullWidth label="City" variant="outlined" />
+                <TextField value={city} onChange={(e) => setCity(e.target.value)} sx={{ mt: 2 }} fullWidth label="City" variant="outlined" />
 
-                <TextField sx={{ mt: 2 }} fullWidth label="Landlord Address 1" variant="outlined" />
+                <TextField value={address1} onChange={(e) => setAddress1(e.target.value)} sx={{ mt: 2 }} fullWidth label="Landlord Address 1" variant="outlined" />
 
-                <TextField sx={{ mt: 2 }} fullWidth label="Landlord Address 2" variant="outlined" />
+                <TextField value={address2} onChange={(e) => setAddress2(e.target.value)} sx={{ mt: 2 }} fullWidth label="Landlord Address 2" variant="outlined" />
               </>
             ) : steps === 3 ? (
               <>
