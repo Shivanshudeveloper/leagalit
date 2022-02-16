@@ -9,6 +9,7 @@ const Products_Model = require("../models/Products");
 const MainStore_Model = require("../models/MainStore");
 const FeaturedProduct_Model = require("../models/FeaturedProduct");
 const Profile_Model = require("../models/Profile")
+const Agreement_Model = require("../models/Agreement")
 
 // TEST
 // @GET TEST
@@ -110,7 +111,7 @@ router.get("/profiles/:userId", async (req, res) => {
 
 // Database CRUD Operations
 // Delete a profile based on _id
-// Delete
+// DELETE
 router.delete("/profiles/:profileId", async (req, res) => {
 
   res.setHeader("Content-Type", "application/json");
@@ -125,7 +126,7 @@ router.delete("/profiles/:profileId", async (req, res) => {
 
 // Database CRUD Operations
 // Modify a profile based on _id
-// Patch
+// PATCH
 router.patch("/profiles/:profileId", async (req, res) => {
 
   res.setHeader("Content-Type", "application/json");
@@ -142,6 +143,9 @@ router.patch("/profiles/:profileId", async (req, res) => {
     })
 })
 
+// Database CRUD Operations
+// Get a profile based on _id
+// GET
 router.get("/getProfile/:profileId", async (req, res) => {
   res.setHeader("Content-Type", "application/json");
 
@@ -153,5 +157,69 @@ router.get("/getProfile/:profileId", async (req, res) => {
   })
 })
 
+// Database CRUD Operations
+// Post a new agreement 
+// POST
+router.post("/agreements", async (req, res) => {
+
+  res.setHeader("Content-Type", "application/json");
+
+  console.log(req.body)
+
+  const newAgreement = new Agreement_Model({
+    title: req.body.title,
+    date: req.body.date,
+    template: req.body.template,
+    landlord: req.body.landlord,
+    propertyInfo: req.body.propertyInfo,
+    propertyAddress: req.body.propertyAddress,
+    leaseDurationInfo: req.body.leaseDurationInfo,
+    monthlyRent: req.body.monthlyRent,
+    deposit: req.body.deposit,
+    userId: req.body.userId
+  });
+
+  newAgreement.save((err) => {
+    if (err) {
+      console.log(err)
+      res.status(400).json(`Error: ${err}`)
+    }
+    else {
+      res.status(200).send("created a new agreement")
+
+    }
+  })
+})
+
+// Database CRUD Operations
+// Get all the agreements corresponding to a user_id
+// GET
+router.get("/agreements/:userId", async (req, res) => {
+
+  res.setHeader("Content-Type", "application/json");
+
+  Agreement_Model.find({ userId: req.params.userId }, (err, agreements) => {
+    if (err)
+      res.status(400).json(`Error: ${err}`)
+    else
+      res.status(200).json(agreements)
+  }
+  )
+})
+
+// Database CRUD Operations
+// Delete an agreement based on _id
+// DELETE
+router.delete("/agreements/:agreement_id", async (req, res) => {
+
+  res.setHeader("Content-Type", "application/json");
+
+  Agreement_Model.deleteOne({ _id: req.params.agreement_id }, (err) => {
+    if (err)
+      res.status(400).json(`Error: ${err}`)
+    else
+      res.status(200).send("Deleted one agreement successfully!")
+  })
+})
 
 module.exports = router;

@@ -20,6 +20,7 @@ import {
   StepLabel,
   InputAdornment,
   Divider,
+  duration,
 } from "@mui/material";
 import { DashboardLayout } from "../components/dashboard-layout";
 
@@ -30,6 +31,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
+import Snackbar from '@mui/material/Snackbar';
 
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -45,6 +47,8 @@ import { borderRadius, typography } from "@mui/system";
 
 import useSessionStorage from "src/hooks/useSessionStorage";
 import axios from "axios";
+
+var converter = require("number-to-words")
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="left" ref={ref} {...props} />;
@@ -116,6 +120,66 @@ const NumberFormatCustom = React.forwardRef(function NumberFormatCustom(props, r
 });
 
 const Aggrements = () => {
+
+
+  // landlord information
+  let [landlord, setLandlord] = useState({
+    landlordName: "",
+    city: "",
+    pincode: "",
+    state: "",
+    address1: "",
+    address2: "",
+  })
+
+  // Property information 
+  let [propertyInfo, setPropertyInfo] = useState({
+    fallingCategory: "",
+    bedrooms: 0,
+    bathrooms: 0,
+    squareFeet: 0
+  })
+
+  // Property Address
+  let [propertyAddress, setPropertyAddress] = useState({
+    leaseName: "",
+    city: "",
+    pincode: "",
+    state: "",
+    address1: "",
+    address2: ""
+  })
+
+  // Lease Duration 
+  let [leaseDurationInfo, setLeaseDurationInformation] = useState({
+    startDate: "",
+    duration: 0,
+    durationUnit: "",
+    term: 0,
+    termUnit: "",
+    startingMeter: ""
+  })
+
+  // Lease Amount : Monthly rent and deposit
+  let [monthlyRent, setMonthlyRent] = useState({
+    amountNumbers: 0,
+    amountWords: "",
+    payDate: ""
+  })
+
+  let [deposit, setDeposit] = useState({
+    amountNumbers: 0,
+    amountWords: ""
+  })
+
+  // For adding a new agreement__________________________________________________________________________________________
+  let [newAgreement, setNewAgreement] = useState({
+    title: "",
+    date: "",
+    template: ""
+  })
+
+
   const userId = useSessionStorage('userId')
   const [open, setOpen] = React.useState(false);
   const handleClickOpen = () => {
@@ -175,54 +239,159 @@ const Aggrements = () => {
     });
   };
 
-  const handleSubmit = () => {
-    setActiveStep(0);
-    setSteps(1);
-    handleClose();
+
+  // Delete an agreement 
+  async function deleteAgreement(agreementId) {
+    let baseURL = `http://localhost:5000/api/v1/main/agreements/${agreementId}`;
+
+    axios.delete(baseURL)
+      .then(result => {
+        console.log(result.data)
+        setToggler(!toggler)
+      })
+      .catch(err => {
+        console.log(err)
+      })
+
+  }
+
+  let [openSnackBar, setOpenSnackBar] = useState(false)
+  let [snackBarMessage, setSnackBarMessage] = useState("")
+
+  function notifyUser(state) {
+
+    switch (state) {
+      case 0: setSnackBarMessage("Agreement created")
+        break
+      case 1: setSnackBarMessage("Please fill all the inputs")
+        break
+      case 2: setSnackBarMessage("Please login to create a new agreement")
+        break
+    }
+    setOpenSnackBar(true)
+  }
+
+  const handleSubmit = async () => {
+
+    // If details are missing then do not submit
+    if (!userId) {
+      notifyUser(2)
+      return
+    }
+
+    if ((newAgreement.title === "" || newAgreement.date === "" || newAgreement.template === "")
+      || (landlord.landlordName === "" || landlord.city === "" || landlord.state === "" || landlord.address1 === "" || landlord.pincode === "")
+      || (propertyAddress.leaseName === "" || propertyAddress.state === "" || propertyAddress.city === "" || propertyAddress.pincode === "" || propertyAddress.address1 === "")
+      || (propertyInfo.bathrooms === "" || propertyInfo.bedrooms === "" || propertyInfo.fallingCategory === "" || propertyInfo.squareFeet === "")
+      || (leaseDurationInfo.duration === "" || leaseDurationInfo.durationUnit === "" || leaseDurationInfo.term === "" || leaseDurationInfo.termUnit === "" || leaseDurationInfo.startDate === "" || leaseDurationInfo.startingMeter === "")
+      || (monthlyRent.amountNumbers === "" || monthlyRent.amountWords === "" || monthlyRent.payDate === "")
+      || (deposit.amountNumbers === "" || deposit.amountWords === "")) {
+      notifyUser(1)
+      return
+    }
+    // On submit post to the api
+    const agreement = {
+      title: newAgreement.title,
+      date: newAgreement.date,
+      template: newAgreement.template,
+      landlord,
+      propertyAddress,
+      propertyInfo,
+      leaseDurationInfo,
+      monthlyRent,
+      deposit,
+      userId
+    }
+
+    console.log(agreement)
+
+    let baseURL = `http://localhost:5000/api/v1/main/agreements/`;
+    await axios.post(baseURL, agreement)
+      .then(res => {
+        console.log(res.data)
+        setActiveStep(0);
+        setSteps(1);
+
+        setToggler(!toggler)
+        notifyUser(0)
+
+        // Reset the state
+        setLandlord({
+          landlordName: "",
+          city: "",
+          pincode: "",
+          state: "",
+          address1: "",
+          address2: "",
+        })
+
+        setPropertyInfo({
+          fallingCategory: "",
+          bedrooms: 0,
+          bathrooms: 0,
+          squareFeet: 0
+        })
+
+        setPropertyInfo({
+          leaseName: "",
+          city: "",
+          pincode: "",
+          state: "",
+          address1: "",
+          address2: ""
+        })
+
+        setLeaseDurationInformation({
+          startDate: "",
+          duration: 0,
+          durationUnit: "",
+          term: 0,
+          termUnit: "",
+          startingMeter: ""
+        })
+
+        setMonthlyRent({
+          amountNumbers: 0,
+          amountWords: "",
+          payDate: ""
+        })
+
+        setDeposit({
+          amountNumbers: 0,
+          amountWords: ""
+        })
+
+        setNewAgreement({
+          title: "",
+          date: "",
+          template: ""
+        })
+
+        handleClose();
+      })
+      .catch(err => {
+        console.log(err)
+      })
   };
 
-  const handleChangeToWords = () => {
-    const monthlyRent = document.getElementById("monthlyRent");
-    const monthlyRentWords = document.getElementById("monthlyRentWords");
+  // When the component mounts fetch all the agreements
+  let [agreements, setAgreements] = useState([])
+  let [toggler, setToggler] = useState(false)
+  useEffect(async () => {
 
-    const deposit = document.getElementById("deposit");
-    const depositWords = document.getElementById("depositWords");
+    if (!userId)
+      return
 
-    const chars1 = monthlyRent.value.split(",");
-    const monthlyRentChars = String(chars1.join(""));
+    let baseURL = `http://localhost:5000/api/v1/main/agreements/${userId}`;
 
-    const chars2 = deposit.value.split(",");
-    const depositChars = String(chars2.join(""));
+    await axios.get(baseURL)
+      .then((res) => {
+        console.log(res.data)
+        setAgreements(res.data.reverse())
+      })
+      .catch((err) => { throw err })
 
-    const monthlyRentToWords =
-      monthlyRentChars &&
-      converter
-        .toWords(monthlyRentChars)
-        .toLowerCase()
-        .split(" ")
-        .map((word) => word.charAt(0).toUpperCase() + word.substring(1))
-        .join(" ");
-    const depositToWords =
-      depositChars &&
-      converter
-        .toWords(depositChars)
-        .toLowerCase()
-        .split(" ")
-        .map((word) => word.charAt(0).toUpperCase() + word.substring(1))
-        .join(" ");
-
-    monthlyRent.value &&
-      Number(monthlyRent.value) != 0 &&
-      (monthlyRentWords.value = monthlyRentToWords);
-
-    (monthlyRent.value && monthlyRent.value === "") ||
-      (Number(monthlyRent.value) === 0 && (monthlyRentWords.value = ""));
-
-    deposit.value && Number(deposit.value) != 0 && (depositWords.value = depositToWords);
-
-    (deposit.value && deposit.value === "") ||
-      (Number(deposit.value) === 0 && (depositWords.value = ""));
-  };
+  }, [userId, toggler])
 
   const [values, setValues] = React.useState({
     textmask: "(100) 000-0000",
@@ -252,13 +421,6 @@ const Aggrements = () => {
   }, [userId])
 
   let [selectedProfile, setSelectedProfile] = useState()
-  let [title, setTitle] = useState("")
-  let [landlordName, setLandlordName] = useState("")
-  let [city, setCity] = useState("")
-  let [state, setState] = useState("Andhra Pradesh")
-  let [pincode, setPincode] = useState("")
-  let [address1, setAddress1] = useState("")
-  let [address2, setAddress2] = useState("")
 
   useEffect(async () => {
 
@@ -270,23 +432,52 @@ const Aggrements = () => {
     await axios.get(baseURL)
       .then((res) => {
         let data = res.data
+        setLandlord({
+          title: data.title,
+          landlordName: data.landlordName,
+          city: data.city,
+          state: data.state,
+          pincode: data.pincode,
+          address1: data.address1,
+          address2: data.address2
+        })
 
-        setTitle(data.title)
-        setLandlordName(data.landlordName)
-        setCity(data.city)
-        setState(data.state)
-        setAddress1(data.address1)
-        setAddress2(data.address2)
-        setPincode(data.pincode)
       })
       .catch((err) => { throw err })
 
 
   }, [selectedProfile])
 
+  // For the snackbar
+  // Opens when a new agreement is created
+  const action = (
+    <React.Fragment>
+      <IconButton
+        size="small"
+        aria-label="close"
+        color="inherit"
+        onClick={() => {
+          setOpenSnackBar(false)
+        }}
+      >
+        <CloseIcon fontSize="small" />
+      </IconButton>
+    </React.Fragment>
+  );
 
   return (
     <>
+      {/* Opens after a new agreement is submitted */}
+      <Snackbar
+        open={openSnackBar}
+        autoHideDuration={6000}
+        onClose={() => {
+          setOpenSnackBar(false)
+        }}
+        message={snackBarMessage}
+        action={action}
+      />
+
       <Dialog fullScreen open={open} onClose={handleClose} TransitionComponent={Transition}>
         <AppBar sx={{ position: "relative", backgroundColor: "#111827" }} id="serviceTopBar">
           <Toolbar>
@@ -315,21 +506,54 @@ const Aggrements = () => {
                 <Typography sx={{ mt: 1 }} variant="h5">
                   New Aggrement
                 </Typography>
-                <TextField sx={{ mt: 2 }} fullWidth label="Title" variant="outlined" />
+
+                <TextField name="title"
+                  value={newAgreement.title}
+                  onChange={(e) => {
+                    let { name, value } = e.target
+                    setNewAgreement((preVal) => {
+                      return {
+                        ...preVal,
+                        [name]: value
+                      }
+                    })
+                  }}
+                  sx={{ mt: 2 }} fullWidth label="Title" variant="outlined" />
 
                 <Typography sx={{ mt: 2 }} variant="h6">
                   Date
                 </Typography>
-                <TextField fullWidth type="date" variant="outlined" />
+                <TextField fullWidth type="date" variant="outlined"
+                  name="date"
+                  value={newAgreement.date}
+                  onChange={(e) => {
+                    let { name, value } = e.target
+                    setNewAgreement((preVal) => {
+                      return {
+                        ...preVal,
+                        [name]: value
+                      }
+                    })
+                  }}
+                />
 
                 <FormControl sx={{ mt: 2 }} fullWidth>
                   <InputLabel id="demo-simple-select-label">Select Aggrement Template</InputLabel>
                   <Select
                     labelId="demo-simple-select-label"
                     id="demo-simple-select"
-                    value={age}
                     label="Select Aggrement Template"
-                    onChange={handleChange}
+                    name="template"
+                    value={newAgreement.template}
+                    onChange={(e) => {
+                      let { name, value } = e.target
+                      setNewAgreement((preVal) => {
+                        return {
+                          ...preVal,
+                          [name]: value
+                        }
+                      })
+                    }}
                   >
                     <MenuItem value="Residential Rental Agreement">
                       Residential Rental Agreement
@@ -371,15 +595,40 @@ const Aggrements = () => {
                 >
                   {/* Map all the profiles to the menu */}
                   {profiles?.map((profile, i) => {
-                    console.log(profile._id)
+                    {/* console.log(profile._id) */ }
                     return <MenuItem key={profile._id} value={profile._id}>{profile.title}</MenuItem>
                   })}
+
                 </TextField>
                 <Divider sx={{ color: "#6B7280", fontSize: "1.25rem", my: 2 }}>OR</Divider>
 
-                <TextField value={landlordName} onChange={(e) => setLandlordName(e.target.value)} sx={{ mt: 2 }} fullWidth label="Landlord Name" variant="outlined" />
+                <TextField
+                  name="landlordName"
+                  value={landlord.landlordName}
+                  onChange={(e) => {
+                    let { name, value } = e.target
+                    setLandlord((preVal) => {
+                      return {
+                        ...preVal,
+                        [name]: value
+                      }
+                    })
+                  }}
+                  sx={{ mt: 2 }} fullWidth label="Landlord Name" variant="outlined" />
 
-                <select value={state} onChange={(e) => setState(e.target.value)} style={{ padding: "20px", width: "100%", marginTop: "20px" }}>
+                <select
+                  name="state"
+                  value={landlord.state}
+                  onChange={(e) => {
+                    let { name, value } = e.target
+                    setLandlord((preVal) => {
+                      return {
+                        ...preVal,
+                        [name]: value
+                      }
+                    })
+                  }}
+                  style={{ padding: "20px", width: "100%", marginTop: "20px" }}>
                   <option value="Andhra Pradesh">Andhra Pradesh</option>
                   <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
                   <option value="Arunachal Pradesh">Arunachal Pradesh</option>
@@ -419,27 +668,97 @@ const Aggrements = () => {
                 </select>
 
                 <TextField
-                  value={pincode} onChange={(e) => setPincode(e.target.value)}
                   sx={{ mt: 2 }}
                   fullWidth
                   type="text"
                   label="Pinclode"
                   variant="outlined"
+                  name="pincode"
+                  value={landlord.pincode}
+                  onChange={(e) => {
+                    let { name, value } = e.target
+                    setLandlord((preVal) => {
+                      return {
+                        ...preVal,
+                        [name]: value
+                      }
+                    })
+                  }}
                 />
 
-                <TextField value={city} onChange={(e) => setCity(e.target.value)} sx={{ mt: 2 }} fullWidth label="City" variant="outlined" />
+                <TextField
+                  name="city"
+                  value={landlord.city}
+                  onChange={(e) => {
+                    let { name, value } = e.target
+                    setLandlord((preVal) => {
+                      return {
+                        ...preVal,
+                        [name]: value
+                      }
+                    })
+                  }}
+                  sx={{ mt: 2 }} fullWidth label="City" variant="outlined" />
 
-                <TextField value={address1} onChange={(e) => setAddress1(e.target.value)} sx={{ mt: 2 }} fullWidth label="Landlord Address 1" variant="outlined" />
+                <TextField
+                  name="address1"
+                  value={landlord.address1}
+                  onChange={(e) => {
+                    let { name, value } = e.target
+                    setLandlord((preVal) => {
+                      return {
+                        ...preVal,
+                        [name]: value
+                      }
+                    })
+                  }}
+                  sx={{ mt: 2 }} fullWidth label="Landlord Address 1" variant="outlined" />
 
-                <TextField value={address2} onChange={(e) => setAddress2(e.target.value)} sx={{ mt: 2 }} fullWidth label="Landlord Address 2" variant="outlined" />
+                <TextField
+                  name="address2"
+                  value={landlord.address2}
+                  onChange={(e) => {
+                    let { name, value } = e.target
+                    setLandlord((preVal) => {
+                      return {
+                        ...preVal,
+                        [name]: value
+                      }
+                    })
+                  }}
+                  sx={{ mt: 2 }} fullWidth label="Landlord Address 2" variant="outlined" />
               </>
             ) : steps === 3 ? (
               <>
                 <Typography sx={{ mt: 1 }} variant="h5">
                   Property Address
                 </Typography>
-                <TextField focused sx={{ mt: 2 }} fullWidth label="Lease Name" variant="outlined" />
-                <select style={{ padding: "20px", width: "100%", marginTop: "20px" }}>
+                <TextField
+                  name="leaseName"
+                  value={propertyAddress.leaseName}
+                  onChange={(e) => {
+                    let { name, value } = e.target
+                    setPropertyAddress((preVal) => {
+                      return {
+                        ...preVal,
+                        [name]: value
+                      }
+                    })
+                  }}
+                  focused sx={{ mt: 2 }} fullWidth label="Lease Name" variant="outlined" />
+                <select
+                  name="state"
+                  value={propertyAddress.state}
+                  onChange={(e) => {
+                    let { name, value } = e.target
+                    setPropertyAddress((preVal) => {
+                      return {
+                        ...preVal,
+                        [name]: value
+                      }
+                    })
+                  }}
+                  style={{ padding: "20px", width: "100%", marginTop: "20px" }}>
                   <option value="Andhra Pradesh">Andhra Pradesh</option>
                   <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
                   <option value="Arunachal Pradesh">Arunachal Pradesh</option>
@@ -484,18 +803,78 @@ const Aggrements = () => {
                   type="text"
                   label="Pinclode"
                   variant="outlined"
+                  name="pincode"
+                  value={propertyAddress.pincode}
+                  onChange={(e) => {
+                    let { name, value } = e.target
+                    setPropertyAddress((preVal) => {
+                      return {
+                        ...preVal,
+                        [name]: value
+                      }
+                    })
+                  }}
                 />
 
-                <TextField sx={{ mt: 2 }} fullWidth label="City" variant="outlined" />
+                <TextField
+                  name="city"
+                  value={propertyAddress.city}
+                  onChange={(e) => {
+                    let { name, value } = e.target
+                    setPropertyAddress((preVal) => {
+                      return {
+                        ...preVal,
+                        [name]: value
+                      }
+                    })
+                  }}
+                  sx={{ mt: 2 }} fullWidth label="City" variant="outlined" />
 
-                <TextField sx={{ mt: 2 }} fullWidth label="Lease Address 1" variant="outlined" />
+                <TextField
+                  name="address1"
+                  value={propertyAddress.address1}
+                  onChange={(e) => {
+                    let { name, value } = e.target
+                    setPropertyAddress((preVal) => {
+                      return {
+                        ...preVal,
+                        [name]: value
+                      }
+                    })
+                  }}
+                  sx={{ mt: 2 }} fullWidth label="Lease Address 1" variant="outlined" />
 
-                <TextField sx={{ mt: 2 }} fullWidth label="Lease Address 2" variant="outlined" />
+                <TextField
+                  name="address2"
+                  value={propertyAddress.address2}
+                  onChange={(e) => {
+                    let { name, value } = e.target
+                    setPropertyAddress((preVal) => {
+                      return {
+                        ...preVal,
+                        [name]: value
+                      }
+                    })
+                  }}
+                  sx={{ mt: 2 }} fullWidth label="Lease Address 2" variant="outlined" />
 
                 <Typography sx={{ mt: 1 }} variant="h5">
                   Property Information
                 </Typography>
-                <select style={{ padding: "20px", width: "100%", marginTop: "20px" }}>
+
+                <select
+                  name="fallingCategory"
+                  value={propertyInfo.fallingCategory}
+                  onChange={(e) => {
+                    let { name, value } = e.target
+                    setPropertyInfo((preVal) => {
+                      return {
+                        ...preVal,
+                        [name]: value
+                      }
+                    })
+                  }}
+                  style={{ padding: "20px", width: "100%", marginTop: "20px" }}>
                   <option selected disabled>
                     Falling Category
                   </option>
@@ -505,11 +884,47 @@ const Aggrements = () => {
                   <option value="Residential Property">Residential Property</option>
                 </select>
 
-                <TextField sx={{ mt: 2 }} fullWidth label="Number of bedrooms" variant="outlined" />
+                <TextField
+                  name="bedrooms"
+                  value={propertyInfo.bedrooms}
+                  onChange={(e) => {
+                    let { name, value } = e.target
+                    setPropertyInfo((preVal) => {
+                      return {
+                        ...preVal,
+                        [name]: value
+                      }
+                    })
+                  }}
+                  sx={{ mt: 2 }} fullWidth label="Number of bedrooms" variant="outlined" />
 
-                <TextField sx={{ mt: 2 }} fullWidth label="Number of bathroom" variant="outlined" />
+                <TextField
+                  name="bathrooms"
+                  value={propertyInfo.bathrooms}
+                  onChange={(e) => {
+                    let { name, value } = e.target
+                    setPropertyInfo((preVal) => {
+                      return {
+                        ...preVal,
+                        [name]: value
+                      }
+                    })
+                  }}
+                  sx={{ mt: 2 }} fullWidth label="Number of bathroom" variant="outlined" />
 
-                <TextField sx={{ mt: 2 }} fullWidth label="Square Feet" variant="outlined" />
+                <TextField
+                  name="squareFeet"
+                  value={propertyInfo.squareFeet}
+                  onChange={(e) => {
+                    let { name, value } = e.target
+                    setPropertyInfo((preVal) => {
+                      return {
+                        ...preVal,
+                        [name]: value
+                      }
+                    })
+                  }}
+                  sx={{ mt: 2 }} fullWidth label="Square Feet" variant="outlined" />
               </>
             ) : steps === 4 ? (
               <>
@@ -519,18 +934,53 @@ const Aggrements = () => {
                 <Typography sx={{ mt: 2 }} variant="h6">
                   Lease Start Date
                 </Typography>
-                <TextField fullWidth type="date" variant="outlined" />
+                <TextField
+                  name="startDate"
+                  value={leaseDurationInfo.startDate}
+                  onChange={(e) => {
+                    let { name, value } = e.target
+                    setLeaseDurationInformation((preVal) => {
+                      return {
+                        ...preVal,
+                        [name]: value
+                      }
+                    })
+                  }}
+                  fullWidth type="date" variant="outlined" />
                 <Typography sx={{ mt: 2 }} variant="h6">
                   Lease Term
                 </Typography>
                 <Box>
                   <TextField
+                    name="term"
+                    value={leaseDurationInfo.term}
+                    onChange={(e) => {
+                      let { name, value } = e.target
+                      setLeaseDurationInformation((preVal) => {
+                        return {
+                          ...preVal,
+                          [name]: value
+                        }
+                      })
+                    }}
                     sx={{ mr: 1, width: "40%" }}
                     InputProps={{
                       inputComponent: NumberFormatCustom,
                     }}
                   />
-                  <TextField select sx={{ width: "58.5%" }}>
+                  <TextField
+                    name="termUnit"
+                    value={leaseDurationInfo.termUnit}
+                    onChange={(e) => {
+                      let { name, value } = e.target
+                      setLeaseDurationInformation((preVal) => {
+                        return {
+                          ...preVal,
+                          [name]: value
+                        }
+                      })
+                    }}
+                    select sx={{ width: "58.5%" }}>
                     <MenuItem value="Days">Days</MenuItem>
                     <MenuItem value="Months">Months</MenuItem>
                     <MenuItem value="Years">Years</MenuItem>
@@ -541,18 +991,52 @@ const Aggrements = () => {
                 </Typography>
                 <Box>
                   <TextField
+                    name="duration"
+                    value={leaseDurationInfo.duration}
+                    onChange={(e) => {
+                      let { name, value } = e.target
+                      setLeaseDurationInformation((preVal) => {
+                        return {
+                          ...preVal,
+                          [name]: value
+                        }
+                      })
+                    }}
                     sx={{ mr: 1, width: "40%" }}
                     InputProps={{
                       inputComponent: NumberFormatCustom,
                     }}
                   />
-                  <TextField select sx={{ width: "58.5%" }}>
+                  <TextField
+                    name="durationUnit"
+                    value={leaseDurationInfo.durationUnit}
+                    onChange={(e) => {
+                      let { name, value } = e.target
+                      setLeaseDurationInformation((preVal) => {
+                        return {
+                          ...preVal,
+                          [name]: value
+                        }
+                      })
+                    }}
+                    select sx={{ width: "58.5%" }}>
                     <MenuItem value="Days">Days</MenuItem>
                     <MenuItem value="Months">Months</MenuItem>
                     <MenuItem value="Years">Years</MenuItem>
                   </TextField>
                 </Box>
                 <TextField
+                  name="startingMeter"
+                  value={leaseDurationInfo.startingMeter}
+                  onChange={(e) => {
+                    let { name, value } = e.target
+                    setLeaseDurationInformation((preVal) => {
+                      return {
+                        ...preVal,
+                        [name]: value
+                      }
+                    })
+                  }}
                   sx={{ my: 2 }}
                   fullWidth
                   label="Starting Meter Reading"
@@ -569,21 +1053,40 @@ const Aggrements = () => {
                   Monthly Rental
                 </Typography>{" "}
                 <TextField
+                  name="amountNumbers"
+                  value={monthlyRent.amountNumbers}
+                  onChange={(e) => {
+                    let { name, value } = e.target
+                    setMonthlyRent((preVal) => {
+                      return {
+                        ...preVal,
+                        [name]: value,
+                        amountWords: converter.toWords(value ? value : 0)
+                      }
+                    })
+                  }}
                   sx={{ mt: 1 }}
                   fullWidth
                   label="In Numbers"
-                  onChange={handleChangeOk}
-                  name="numberformat"
-                  id="monthlyRent"
                   InputProps={{
                     endAdornment: <InputAdornment position="end">Rs</InputAdornment>,
                     inputComponent: NumberFormatCustom,
                   }}
                   variant="outlined"
-                  onBlur={handleChangeToWords}
                 />
                 <TextField
-                  id="monthlyRentWords"
+                  name="amountWords"
+                  value={monthlyRent.amountWords}
+                  onChange={(e) => {
+                    let { name, value } = e.target
+                    setMonthlyRent((preVal) => {
+
+                      return {
+                        ...preVal,
+                        [name]: value
+                      }
+                    })
+                  }}
                   InputProps={{
                     startAdornment: <InputAdornment position="start">In Words: </InputAdornment>,
                     endAdornment: <InputAdornment position="end">Rupees Only</InputAdornment>,
@@ -604,7 +1107,19 @@ const Aggrements = () => {
                   }}
                 >
                   <Typography color="#6B7280">Amount to be paid on</Typography>
-                  <TextField sx={{ mx: 1, py: 1.4, minWidth: "50px" }} select variant="standard">
+                  <TextField
+                    name="payDate"
+                    value={monthlyRent.payDate}
+                    onChange={(e) => {
+                      let { name, value } = e.target
+                      setMonthlyRent((preVal) => {
+                        return {
+                          ...preVal,
+                          [name]: value
+                        }
+                      })
+                    }}
+                    sx={{ mx: 1, py: 1.4, minWidth: "50px" }} select variant="standard">
                     {dates.map((option) => (
                       <MenuItem key={option.value} value={option.value}>
                         {converter.toOrdinal(option.value)}
@@ -617,21 +1132,41 @@ const Aggrements = () => {
                   Deposit
                 </Typography>
                 <TextField
+                  name="amountNumbers"
+                  value={deposit.amountNumbers}
+                  onChange={(e) => {
+                    console.log(deposit)
+
+                    let { name, value } = e.target
+                    setDeposit((preVal) => {
+                      return {
+                        ...preVal,
+                        [name]: value,
+                        amountWords: converter.toWords(value ? value : 0)
+                      }
+                    })
+                  }}
                   sx={{ mt: 1 }}
                   fullWidth
                   label="In Numbers"
-                  onChange={handleChangeOk}
-                  name="numberformat"
-                  id="deposit"
                   InputProps={{
                     endAdornment: <InputAdornment position="end">Rs</InputAdornment>,
                     inputComponent: NumberFormatCustom,
                   }}
                   variant="outlined"
-                  onBlur={handleChangeToWords}
                 />
                 <TextField
-                  id="depositWords"
+                  name="amountWords"
+                  value={deposit.amountWords}
+                  onChange={(e) => {
+                    let { name, value } = e.target
+                    setDeposit((preVal) => {
+                      return {
+                        ...preVal,
+                        [name]: value,
+                      }
+                    })
+                  }}
                   InputProps={{
                     startAdornment: <InputAdornment position="start">In Words: </InputAdornment>,
                     endAdornment: <InputAdornment position="end">Rupees Only</InputAdornment>,
@@ -718,97 +1253,34 @@ const Aggrements = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                <TableRow key={1} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
-                  <TableCell component="th" scope="row">
-                    1
-                  </TableCell>
-                  <TableCell align="center">Test Title</TableCell>
-                  <TableCell align="center">RESIDENTIAL RENTAL AGREEMENT</TableCell>
-                  <TableCell align="center">Danial Clark</TableCell>
-                  <TableCell align="center">06-02-2022</TableCell>
-                  <TableCell align="center">
-                    <Tooltip title="View">
-                      <IconButton color="primary" aria-label="upload picture" component="span">
-                        <RemoveRedEyeIcon />
-                      </IconButton>
-                    </Tooltip>
 
-                    <Tooltip sx={{ ml: 1 }} title="Delete">
-                      <IconButton color="error" aria-label="upload picture" component="span">
-                        <DeleteIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </TableCell>
-                </TableRow>
+                {agreements?.map((currentAgreement, i) => {
+                  return <TableRow key={currentAgreement._id} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
+                    <TableCell component="th" scope="row">
+                      {i + 1}
+                    </TableCell>
+                    <TableCell align="center">{currentAgreement.title}</TableCell>
+                    <TableCell align="center">{currentAgreement.template}</TableCell>
+                    <TableCell align="center">{currentAgreement.landlord.landlordName}</TableCell>
+                    <TableCell align="center">{currentAgreement.date}</TableCell>
+                    <TableCell align="center">
+                      <Tooltip title="View">
+                        <IconButton color="primary" aria-label="upload picture" component="span">
+                          <RemoveRedEyeIcon />
+                        </IconButton>
+                      </Tooltip>
 
-                <TableRow key={1} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
-                  <TableCell component="th" scope="row">
-                    2
-                  </TableCell>
-                  <TableCell align="center">Test Title 2</TableCell>
-                  <TableCell align="center">RESIDENTIAL RENTAL AGREEMENT</TableCell>
-                  <TableCell align="center">Danial Clark</TableCell>
-                  <TableCell align="center">06-02-2022</TableCell>
-                  <TableCell align="center">
-                    <Tooltip title="View">
-                      <IconButton color="primary" aria-label="upload picture" component="span">
-                        <RemoveRedEyeIcon />
-                      </IconButton>
-                    </Tooltip>
-
-                    <Tooltip sx={{ ml: 1 }} title="Delete">
-                      <IconButton color="error" aria-label="upload picture" component="span">
-                        <DeleteIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </TableCell>
-                </TableRow>
-
-                <TableRow key={1} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
-                  <TableCell component="th" scope="row">
-                    3
-                  </TableCell>
-                  <TableCell align="center">Test Title 3</TableCell>
-                  <TableCell align="center">RESIDENTIAL RENTAL AGREEMENT</TableCell>
-                  <TableCell align="center">Danial Clark</TableCell>
-                  <TableCell align="center">06-02-2022</TableCell>
-                  <TableCell align="center">
-                    <Tooltip title="View">
-                      <IconButton color="primary" aria-label="upload picture" component="span">
-                        <RemoveRedEyeIcon />
-                      </IconButton>
-                    </Tooltip>
-
-                    <Tooltip sx={{ ml: 1 }} title="Delete">
-                      <IconButton color="error" aria-label="upload picture" component="span">
-                        <DeleteIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </TableCell>
-                </TableRow>
-
-                <TableRow key={1} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
-                  <TableCell component="th" scope="row">
-                    4
-                  </TableCell>
-                  <TableCell align="center">Test Title 4</TableCell>
-                  <TableCell align="center">RESIDENTIAL RENTAL AGREEMENT</TableCell>
-                  <TableCell align="center">Danial Clark</TableCell>
-                  <TableCell align="center">06-02-2022</TableCell>
-                  <TableCell align="center">
-                    <Tooltip title="View">
-                      <IconButton color="primary" aria-label="upload picture" component="span">
-                        <RemoveRedEyeIcon />
-                      </IconButton>
-                    </Tooltip>
-
-                    <Tooltip sx={{ ml: 1 }} title="Delete">
-                      <IconButton color="error" aria-label="upload picture" component="span">
-                        <DeleteIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </TableCell>
-                </TableRow>
+                      <Tooltip sx={{ ml: 1 }} title="Delete">
+                        <IconButton color="error" aria-label="upload picture" component="span">
+                          <DeleteIcon onClick={() => {
+                            deleteAgreement(currentAgreement._id)
+                          }
+                          } />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                })}
               </TableBody>
             </Table>
           </TableContainer>

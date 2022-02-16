@@ -238,7 +238,7 @@ const Profiles = () => {
 
     await axios.get(baseURL)
       .then((res) => {
-        setProfiles(res.data)
+        setProfiles(res.data.reverse())
       })
       .catch((err) => { throw err })
 
@@ -255,6 +255,7 @@ const Profiles = () => {
 
   return (
     <>
+      {/* Dialog to edit a profile____________________________________________________________________________________*/}
       <Dialog open={openEditor} onClose={handleCloseEditor} TransitionComponent={Transition}>
         {/* <AppBar sx={{ position: "relative", backgroundColor: "#111827" }} id="serviceTopBar">
           <Toolbar>
@@ -340,7 +341,7 @@ const Profiles = () => {
       </Dialog>
 
 
-      {/* Dialog to add new profile---------------------------------------------------------------------------- */}
+      {/* Dialog to add new profile___________________________________________________________________________________*/}
       <Dialog open={open} onClose={handleClose} TransitionComponent={Transition}>
         {/* <AppBar sx={{ position: "relative", backgroundColor: "#111827" }} id="serviceTopBar">
           <Toolbar>
