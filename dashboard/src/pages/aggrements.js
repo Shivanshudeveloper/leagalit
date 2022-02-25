@@ -47,6 +47,8 @@ import { borderRadius, typography } from "@mui/system";
 
 import useSessionStorage from "src/hooks/useSessionStorage";
 import axios from "axios";
+import { useRouter } from "next/router";
+import { API_SERVICES } from "../config/apiRoutes"
 
 var converter = require("number-to-words")
 
@@ -101,6 +103,7 @@ const dates = [
 const NumberFormatCustom = React.forwardRef(function NumberFormatCustom(props, ref) {
   const { onChange, ...other } = props;
 
+
   return (
     <NumberFormat
       {...other}
@@ -121,6 +124,7 @@ const NumberFormatCustom = React.forwardRef(function NumberFormatCustom(props, r
 
 const Aggrements = () => {
 
+  const router = useRouter()
 
   // landlord information
   let [landlord, setLandlord] = useState({
@@ -137,6 +141,7 @@ const Aggrements = () => {
     fallingCategory: "",
     bedrooms: 0,
     bathrooms: 0,
+    carparks: 0,
     squareFeet: 0
   })
 
@@ -242,7 +247,7 @@ const Aggrements = () => {
 
   // Delete an agreement 
   async function deleteAgreement(agreementId) {
-    let baseURL = `http://localhost:5000/api/v1/main/agreements/${agreementId}`;
+    let baseURL = `${API_SERVICES}/agreements/${agreementId}`;
 
     axios.delete(baseURL)
       .then(result => {
@@ -263,9 +268,9 @@ const Aggrements = () => {
     switch (state) {
       case 0: setSnackBarMessage("Agreement created")
         break
-      case 1: setSnackBarMessage("Please fill all the inputs")
+      case 1: setSnackBarMessage("Input field(s) may be vacant")
         break
-      case 2: setSnackBarMessage("Please login to create a new agreement")
+      case 2: setSnackBarMessage("Please login")
         break
     }
     setOpenSnackBar(true)
@@ -305,7 +310,7 @@ const Aggrements = () => {
 
     console.log(agreement)
 
-    let baseURL = `http://localhost:5000/api/v1/main/agreements/`;
+    let baseURL = `${API_SERVICES}/agreements/`;
     await axios.post(baseURL, agreement)
       .then(res => {
         console.log(res.data)
@@ -329,10 +334,11 @@ const Aggrements = () => {
           fallingCategory: "",
           bedrooms: 0,
           bathrooms: 0,
+          carparks: 0,
           squareFeet: 0
         })
 
-        setPropertyInfo({
+        setPropertyAddress({
           leaseName: "",
           city: "",
           pincode: "",
@@ -374,7 +380,7 @@ const Aggrements = () => {
       })
   };
 
-  // When the component mounts fetch all the agreements
+  // When the component mounts or an agreement is created/deleted/modified fetch all the agreements
   let [agreements, setAgreements] = useState([])
   let [toggler, setToggler] = useState(false)
   useEffect(async () => {
@@ -382,7 +388,7 @@ const Aggrements = () => {
     if (!userId)
       return
 
-    let baseURL = `http://localhost:5000/api/v1/main/agreements/${userId}`;
+    let baseURL = `${API_SERVICES}/agreements/${userId}`;
 
     await axios.get(baseURL)
       .then((res) => {
@@ -410,7 +416,7 @@ const Aggrements = () => {
     if (!userId)
       return
 
-    let baseURL = `http://localhost:5000/api/v1/main/profiles/${userId}`;
+    let baseURL = `${API_SERVICES}/profiles/${userId}`;
 
     await axios.get(baseURL)
       .then((res) => {
@@ -427,7 +433,7 @@ const Aggrements = () => {
     if (!selectedProfile)
       return
 
-    let baseURL = `http://localhost:5000/api/v1/main/getProfile/${selectedProfile}`;
+    let baseURL = `${API_SERVICES}/getProfile/${selectedProfile}`;
 
     await axios.get(baseURL)
       .then((res) => {
@@ -913,6 +919,20 @@ const Aggrements = () => {
                   sx={{ mt: 2 }} fullWidth label="Number of bathroom" variant="outlined" />
 
                 <TextField
+                  name="carparks"
+                  value={propertyInfo.carparks}
+                  onChange={(e) => {
+                    let { name, value } = e.target
+                    setPropertyInfo((preVal) => {
+                      return {
+                        ...preVal,
+                        [name]: value
+                      }
+                    })
+                  }}
+                  sx={{ mt: 2 }} fullWidth label="Number of carparks" variant="outlined" />
+
+                <TextField
                   name="squareFeet"
                   value={propertyInfo.squareFeet}
                   onChange={(e) => {
@@ -1265,7 +1285,19 @@ const Aggrements = () => {
                     <TableCell align="center">{currentAgreement.date}</TableCell>
                     <TableCell align="center">
                       <Tooltip title="View">
-                        <IconButton color="primary" aria-label="upload picture" component="span">
+                        <IconButton color="primary" aria-label="upload picture" component="span"
+                          // OnClick redirect to view agreement page 
+                          onClick={
+                            () => {
+                              // router.push({
+                              //   pathname: '/viewAgreement',
+                              //   query: { agreementID: `${currentAgreement._id}` }
+                              // })
+
+                              window.open(`/viewAgreement?agreementID=${currentAgreement._id}`)
+                            }
+                          }
+                        >
                           <RemoveRedEyeIcon />
                         </IconButton>
                       </Tooltip>

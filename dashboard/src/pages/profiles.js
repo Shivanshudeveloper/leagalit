@@ -29,6 +29,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
+import { API_SERVICES } from "../config/apiRoutes"
 
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -106,7 +107,7 @@ const Profiles = () => {
     if (!profileToEdit)
       return
 
-    let baseURL = `http://localhost:5000/api/v1/main/getProfile/${profileToEdit}`;
+    let baseURL = `${API_SERVICES}/getProfile/${profileToEdit}`;
 
     await axios.get(baseURL)
       .then((res) => {
@@ -148,7 +149,7 @@ const Profiles = () => {
       address2: address2Editor
     }
 
-    let baseURL = `http://localhost:5000/api/v1/main/profiles/${profileToEdit}`;
+    let baseURL = `${API_SERVICES}/profiles/${profileToEdit}`;
 
     axios.patch(baseURL, profile)
       .then((res) => {
@@ -185,7 +186,7 @@ const Profiles = () => {
     setAddress2("")
     setState("Andhra Pradesh")
 
-    let baseURL = `http://localhost:5000/api/v1/main/profiles/`;
+    let baseURL = `${API_SERVICES}/profiles/`;
     await axios.post(baseURL, newProfile)
       .then(res => {
         console.log(res.data)
@@ -213,7 +214,7 @@ const Profiles = () => {
 
   async function deleteProfile(profileId) {
 
-    let baseURL = `http://localhost:5000/api/v1/main/profiles/${profileId}`;
+    let baseURL = `${API_SERVICES}/profiles/${profileId}`;
 
     axios.delete(baseURL)
       .then(result => {
@@ -230,11 +231,11 @@ const Profiles = () => {
   useEffect(async () => {
 
     // When the component first loads the userId takes a bit of time to set
-    // If userId is not set we can not fetch data from our API so return 
+    // If userId is not set we can not fetch data from our API, so return 
     if (!userId)
       return
 
-    let baseURL = `http://localhost:5000/api/v1/main/profiles/${userId}`;
+    let baseURL = `${API_SERVICES}/profiles/${userId}`;
 
     await axios.get(baseURL)
       .then((res) => {

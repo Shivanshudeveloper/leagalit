@@ -208,6 +208,22 @@ router.get("/agreements/:userId", async (req, res) => {
 })
 
 // Database CRUD Operations
+// Get an agreement corresponding to it's _id
+// GET
+router.get("/single_agreement/:agreementID", async (req, res) => {
+
+  res.setHeader("Content-Type", "application/json");
+
+  Agreement_Model.findById({ _id: req.params.agreementID }, (err, agreement) => {
+    if (err)
+      res.status(400).json(`Error: ${err}`)
+    else
+      res.status(200).json(agreement)
+  }
+  )
+})
+
+// Database CRUD Operations
 // Delete an agreement based on _id
 // DELETE
 router.delete("/agreements/:agreement_id", async (req, res) => {
