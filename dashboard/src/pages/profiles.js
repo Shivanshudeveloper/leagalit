@@ -33,6 +33,7 @@ import { API_SERVICES } from "../config/apiRoutes"
 
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 import DeleteIcon from "@mui/icons-material/Delete";
+import ArticleIcon from '@mui/icons-material/Article';
 
 import Dialog from "@mui/material/Dialog";
 import Slide from "@mui/material/Slide";
@@ -254,8 +255,118 @@ const Profiles = () => {
   let [address1, setAddress1] = useState("")
   let [address2, setAddress2] = useState("")
 
+  let [agreementView, setAgreementView] = useState(false)
+  let [profileIdForAgreements, setProfileId] = useState("")
+  let [agreements, setAgreements] = useState([])
+
+  function handleCloseAgreementView() {
+    setAgreementView(false)
+  }
+
+  useEffect(() => {
+
+    if (!userId || !profileIdForAgreements)
+      return
+
+    // Fetch all the agreements based on the profile id
+    let baseURL = `${API_SERVICES}/agreements_for_profile/${userId}/${profileIdForAgreements}`;
+
+    axios.get(baseURL)
+      .then((res) => {
+        console.log(res.data)
+        setAgreements(res.data.reverse())
+      })
+      .catch((err) => { throw err })
+
+
+  }, [profileIdForAgreements, toggler])
+
+  // Delete an agreement 
+  async function deleteAgreement(agreementId) {
+    let baseURL = `${API_SERVICES}/agreements/${agreementId}`;
+
+    axios.delete(baseURL)
+      .then(result => {
+        console.log(result.data)
+        setToggler(!toggler)
+      })
+      .catch(err => {
+        console.log(err)
+      })
+
+  }
+
   return (
     <>
+      {/* Dialog to view agreements */}
+      <Dialog maxWidth="lg" open={agreementView} onClose={handleCloseAgreementView} TransitionComponent={Transition}>
+        <Box sx={{ width: "100%" }}>
+          <Container sx={{ mt: 4, mb: 4 }}>
+            <Typography sx={{ mt: 1, mb: 1 }} variant="h5">
+              Agreements
+            </Typography>
+
+            <TableContainer sx={{ margin: "0.5rem" }} component={Paper}>
+              <Table aria-label="simple table">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Sl No.</TableCell>
+                    <TableCell align="center">Title</TableCell>
+                    <TableCell align="center">Type</TableCell>
+                    <TableCell align="center">Lease</TableCell>
+                    <TableCell align="center">Created on</TableCell>
+                    <TableCell align="center"></TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+
+                  {agreements?.map((currentAgreement, i) => {
+                    return <TableRow key={currentAgreement._id} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
+                      <TableCell component="th" scope="row">
+                        {i + 1}
+                      </TableCell>
+                      <TableCell align="center">{currentAgreement.title}</TableCell>
+                      <TableCell align="center">{currentAgreement.template}</TableCell>
+                      <TableCell align="center">{currentAgreement.landlord.landlordName}</TableCell>
+                      <TableCell align="center">{currentAgreement.date}</TableCell>
+                      <TableCell align="center">
+                        <Tooltip title="View">
+                          <IconButton color="primary" aria-label="upload picture" component="span"
+                            // OnClick redirect to view agreement page 
+                            onClick={
+                              () => {
+                                window.open(`/viewAgreement?agreementID=${currentAgreement._id}`)
+                              }
+                            }
+                          >
+                            <RemoveRedEyeIcon />
+                          </IconButton>
+                        </Tooltip>
+
+                        <Tooltip sx={{ ml: 1 }} title="Delete">
+                          <IconButton color="error" aria-label="upload picture" component="span">
+                            <DeleteIcon onClick={() => {
+                              deleteAgreement(currentAgreement._id)
+                            }
+                            } />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            <Stack sx={{ float: "right", mt: 2, mb: 2 }} direction="row" spacing={1}>
+              <Button variant="outlined" color="info" onClick={handleCloseAgreementView} sx={{ width: "100px" }}>
+                Close
+              </Button>
+            </Stack>
+          </Container>
+        </Box>
+      </Dialog>
+
       {/* Dialog to edit a profile____________________________________________________________________________________*/}
       <Dialog open={openEditor} onClose={handleCloseEditor} TransitionComponent={Transition}>
         {/* <AppBar sx={{ position: "relative", backgroundColor: "#111827" }} id="serviceTopBar">
@@ -483,6 +594,15 @@ const Profiles = () => {
                           <RemoveRedEyeIcon onClick={() => {
                             setProfileToEdit(profile._id)
                             handleClickOpenEditor()
+                          }} />
+                        </IconButton>
+                      </Tooltip>
+
+                      <Tooltip title="Agreements">
+                        <IconButton color="primary" aria-label="upload picture" component="span">
+                          <ArticleIcon onClick={() => {
+                            setProfileId(profile._id)
+                            setAgreementView(true)
                           }} />
                         </IconButton>
                       </Tooltip>

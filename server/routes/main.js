@@ -4,6 +4,8 @@ const stripe = require("stripe")(
   "sk_test_51IdwfeH8KzFo5uc9YHKzp2HOPkZJvH0ij0qhWeg0wQ17G73o5fVJYjMkWOfAmWUgjVZe0DesJvrQKbmAPSacXsVP00qMXnEqFr"
 );
 const { v4: uuidv4 } = require("uuid");
+let nodeGeocoder = require('node-geocoder')
+
 // Getting Module
 const Products_Model = require("../models/Products");
 const MainStore_Model = require("../models/MainStore");
@@ -11,54 +13,32 @@ const FeaturedProduct_Model = require("../models/FeaturedProduct");
 const Profile_Model = require("../models/Profile")
 const Agreement_Model = require("../models/Agreement")
 
+let options = {
+  provider: 'openstreetmap',
+}
+
+let geoCoder = nodeGeocoder(options)
+
+// Geolocation
+router.get('/get_location/:latitude/:longitude', (req, res) => {
+  res.setHeader('Content-Type', 'application/json')
+  const { latitude, longitude } = req.params
+
+  geoCoder
+    .reverse({ lat: Number(latitude), lon: Number(longitude) })
+    .then((res2) => {
+      res.status(201).json(res2[0])
+    })
+    .catch((err) => {
+      console.log(err)
+    })
+})
+
 // TEST
 // @GET TEST
 // GET
 router.get("/test", (req, res) => {
   res.send("Working");
-});
-
-// Database CRUD Operations
-// @POST Request to GET the People
-// GET
-router.get("/getallproductapi", (req, res) => {
-  res.setHeader("Content-Type", "application/json");
-  Products_Model.find({})
-    .then((data) => {
-      res.status(200).json(data);
-    })
-    .catch((err) => res.status(400).json(`Error: ${err}`));
-});
-
-// Database CRUD Operations
-// @POST Request to GET the People
-// GET
-router.get("/getallproductsmainstorefilters/:filter", (req, res) => {
-  const { filter } = req.params;
-  res.setHeader("Content-Type", "application/json");
-  MainStore_Model.find({ gender: filter })
-    .then((data) => {
-      res.status(200).json(data);
-    })
-    .catch((err) => res.status(400).json(`Error: ${err}`));
-});
-
-// Database CRUD Operations
-// @POST Request to GET the Product Details
-// GET
-router.patch("/hidefeatured/:id", async (req, res) => {
-  const { id } = req.params;
-  res.setHeader("Content-Type", "application/json");
-  const product = await FeaturedProduct_Model.find({ _id: id });
-  await FeaturedProduct_Model.findByIdAndUpdate(
-    id,
-    { ...product, hidden: true },
-    { new: true, useFindAndModify: false }
-  )
-    .then((data) => {
-      res.status(200).json(data);
-    })
-    .catch((err) => res.status(400).json(`Error: ${err}`));
 });
 
 // TEST
@@ -166,29 +146,109 @@ router.post("/agreements", async (req, res) => {
 
   console.log(req.body)
 
-  const newAgreement = new Agreement_Model({
-    title: req.body.title,
-    date: req.body.date,
-    template: req.body.template,
-    landlord: req.body.landlord,
-    propertyInfo: req.body.propertyInfo,
-    propertyAddress: req.body.propertyAddress,
-    leaseDurationInfo: req.body.leaseDurationInfo,
-    monthlyRent: req.body.monthlyRent,
-    deposit: req.body.deposit,
-    userId: req.body.userId
-  });
+  // Check if a landlord profile already exists
+  Profile_Model.findOne({ landlordName: req.body.landlord.landlordName }, (err, existingProfile) => {
+    if (err)
+      res.status(500).send(err)
 
-  newAgreement.save((err) => {
-    if (err) {
-      console.log(err)
-      res.status(400).json(`Error: ${err}`)
+    else if (existingProfile) {
+      const newAgreement = new Agreement_Model({
+        ...req.body,
+        isSigned: false,
+        profileId: existingProfile._id,
+        signatureDetails: {},
+        userId: req.body.userId
+      });
+
+      newAgreement.save((agreementErr) => {
+        if (agreementErr) {
+          console.log(agreementErr)
+          res.status(400).json(`Agreement Error: ${agreementErr}`)
+        }
+        else {
+          res.status(200).send("created a new agreement")
+
+        }
+      })
     }
+
     else {
-      res.status(200).send("created a new agreement")
+      console.log(req.body.landlord)
 
+      const newProfile = new Profile_Model({
+        title: req.body.landlord.landlordName,
+        landlordName: req.body.landlord.landlordName,
+        city: req.body.landlord.city,
+        state: req.body.landlord.state,
+        pincode: req.body.landlord.pincode,
+        address1: req.body.landlord.address1,
+        address2: req.body.landlord.address2,
+        createdOn: new Date(),
+        userId: req.body.userId
+      });
+
+      newProfile.save((profileError, savedProfile) => {
+        if (profileError)
+          res.status(400).json(`Profile Error: ${profileError}`)
+
+        else {
+          const newAgreement = new Agreement_Model({
+            ...req.body,
+            signatureDetails: {},
+            isSigned: false,
+            profileId: savedProfile._id,
+            userId: req.body.userId
+          });
+
+          newAgreement.save((agreementErr) => {
+            if (agreementErr) {
+              console.log(agreementErr)
+              res.status(400).json(`Error: ${agreementErr}`)
+            }
+            else {
+              res.status(200).send("created a new agreement")
+            }
+          })
+        }
+      })
     }
+
   })
+})
+
+router.patch("/sign_agreement/:agreementID", async (req, res) => {
+
+  res.setHeader("Content-Type", "application/json");
+
+  // console.log(req.body)
+
+  Agreement_Model.updateOne({ _id: req.params.agreementID },
+    {
+      $set: req.body,
+      isSigned: true
+    },
+    (err) => {
+      if (err)
+        res.status(400).json(`Error: ${err}`)
+      else
+        res.status(200).send("Patched one agreement")
+    })
+})
+
+// Database CRUD Operations
+// Get all the agreements corresponding to a user_id
+// GET
+router.get("/agreements_for_profile/:userId/:profileId", async (req, res) => {
+
+  res.setHeader("Content-Type", "application/json");
+
+  Agreement_Model.find({ ...req.params }, (err, agreements) => {
+    if (err)
+      res.status(400).json(`Error: ${err}`)
+    else
+      res.status(200).json(agreements)
+  }
+  )
 })
 
 // Database CRUD Operations

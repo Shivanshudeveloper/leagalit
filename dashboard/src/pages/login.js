@@ -7,7 +7,8 @@ import { Box, Button, Container, Grid, Link, TextField, Typography } from '@mui/
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { Facebook as FacebookIcon } from '../icons/facebook';
 import { Google as GoogleIcon } from '../icons/google';
-import { auth, googleProvider, facebookProvider } from "../Firebase/index";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+const auth = getAuth();
 
 const Login = () => {
   const router = useRouter();
@@ -31,23 +32,18 @@ const Login = () => {
           'Password is required')
     }),
     onSubmit: (values) => {
-      // When the form gets submitted signup the user with the given email and password
-      auth.signInWithEmailAndPassword(values.email, values.password)
-        .then(() => {
+      router.push("/");
+      signInWithEmailAndPassword(auth, formik.values.email, formik.values.password)
+        .then((userCredential) => {
+          // Signed in
+          const user = userCredential.user;
 
-          auth.onAuthStateChanged(function (user) {
-            if (user) {
-              sessionStorage.setItem("userId", user.uid);
-              sessionStorage.setItem("userEmail", user.email);
-            }
-          });
-
-          router.push('/');
-
+          sessionStorage.setItem("userId", user.uid);
+          sessionStorage.setItem("userEmail", user.email);
         })
-        .catch(function (error) {
-          var errorMessage = error.message;
-          console.log(errorMessage);
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
         });
     }
   });

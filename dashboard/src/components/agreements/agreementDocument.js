@@ -1,21 +1,40 @@
 import PageStyles from "./PageStyles.module.css"
+import { useState, useEffect } from "react";
+import axios from "axios"
+import { API_SERVICES } from "src/config/apiRoutes";
 
 export const AgreementDocument = (props) => {
     const { agreement } = props
+
+    const [location, setLocation] = useState()
+
+    useEffect(() => {
+        if (!agreement?.isSigned)
+            return
+
+        axios.get(`${API_SERVICES}/get_location/${agreement?.signatureDetails.latitude}/${agreement?.signatureDetails.longitude}`)
+            .then(res => {
+                setLocation(res.data)
+                console.log(res.data)
+            })
+            .catch(err => console.log(err))
+
+    }, [props?.agreement?.signatureDetails])
+
 
     return (< div >
         <h2>RESIDENTIAL RENTAL AGREEMENT</h2>
 
         <p>
-            This agreement made at {agreement?.landlord?.city}, {agreement?.landlord?.state} on this [Date, Month, Year] between {agreement?.landlord?.landlordName}, residing at {agreement?.landlord?.address1}, {agreement?.landlord?.address2}, {agreement?.landlord?.city}, {agreement?.landlord?.state}, {agreement?.landlord?.pincode}
-            hereinafter referred to as the `LESSOR` of the One Part AND [Tenant Name], residing at
+            This agreement made at {agreement?.landlord?.city}, {agreement?.landlord?.state} on this {agreement?.date} between {agreement?.landlord?.landlordName}, residing at {agreement?.landlord?.address1}, {agreement?.landlord?.address2}, {agreement?.landlord?.city}, {agreement?.landlord?.state}, {agreement?.landlord?.pincode}
+            {" "}hereinafter referred to as the `LESSOR` of the One Part AND [Tenant Name], residing at
             [Tenant Address Line 1, Address Line 2, City, State, Pin Code] hereinafter referred to as
             the `LESSEE` of the other Part;
         </p>
         <br />
 
         <p>
-            WHEREAS the Lessor is the lawful owner of, and otherwise well sufficiently entitled to
+            WHEREAS the Lessor is the lawful owner of, and otherwise well sufficiently entitled to {" "}
             {agreement?.propertyAddress?.address1}, {agreement?.propertyAddress?.address2}, {agreement?.propertyAddress?.city}, {agreement?.propertyAddress?.state}, {agreement?.propertyAddress?.pincode} falling in the
             category, {agreement?.propertyInfo?.fallingCategory} and
             comprising of {agreement?.propertyInfo?.bedrooms} Bedrooms, {agreement?.propertyInfo?.bathrooms} Bathrooms, {agreement?.propertyInfo?.carparks} Carparks with an extent of {agreement?.propertyInfo?.squareFeet} Square-feet hereinafter referred to as the `said premises`;
@@ -25,7 +44,7 @@ export const AgreementDocument = (props) => {
         <p>
             AND WHEREAS at the request of the Lessee, the Lessor has agreed to let the said
             premises to the tenant for a term of {agreement?.leaseDurationInfo?.term} {agreement?.leaseDurationInfo?.termUnit} commencing from {agreement?.leaseDurationInfo?.startDate}
-            in the manner hereinafter appearing.
+            {" "}in the manner hereinafter appearing.
         </p>
         <br />
 
@@ -241,7 +260,7 @@ export const AgreementDocument = (props) => {
         <br />
 
         <p>
-            List of fixtures and fittings provided in {agreement?.propertyAddress?.address1}, {agreement?.propertyAddress?.address2},
+            List of fixtures and fittings provided in {agreement?.propertyAddress?.address1}, {agreement?.propertyAddress?.address2},{" "}
             {agreement?.propertyAddress?.city}, {agreement?.propertyAddress?.state}, {agreement?.propertyAddress?.pincode}:
 
             <ol div style={{ marginLeft: "1rem", marginRight: "1rem" }}>
@@ -250,7 +269,25 @@ export const AgreementDocument = (props) => {
                 <li>Item 3 </li>
             </ol>
         </p>
+        <br />
 
+        {
+            agreement?.isSigned &&
+            <div style={{ display: "flex", alignItems: "center", flexDirection: "column" }}>
+                <h2>
+                    <strong>Landlord</strong>
+                </h2>
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                    <img style={{ width: "5rem", height: "5rem", marginRight: "1rem" }} src={agreement.signatureDetails.signerImg} />
+                    <div>
+                        {agreement.signatureDetails.fullNameOfSigner}
+                        <br />
+                        {location?.formattedAddress}
+                    </div>
+
+                </div>
+            </div>
+        }
     </div >
     )
 };

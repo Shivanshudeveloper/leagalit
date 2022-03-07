@@ -18,7 +18,7 @@ const profileDataSchema = new mongoose.Schema({
         required: true
     },
     createdOn: {
-        type: Date,
+        type: String,
         required: true
     },
     pincode: {

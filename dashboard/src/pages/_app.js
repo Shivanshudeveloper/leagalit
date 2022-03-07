@@ -6,6 +6,9 @@ import { CssBaseline } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
 import { createEmotionCache } from '../utils/create-emotion-cache';
 import { theme } from '../theme';
+import Layout from "src/layout/Layout";
+import { app } from "../Firebase/index";
+import withAuth from "src/components/withAuth";
 
 const clientSideEmotionCache = createEmotionCache();
 
@@ -28,7 +31,10 @@ const App = (props) => {
       <LocalizationProvider dateAdapter={AdapterDateFns}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          {getLayout(<Component {...pageProps} />)}
+          {getLayout(
+            <Layout>
+              <Component {...pageProps} />
+            </Layout>)}
         </ThemeProvider>
       </LocalizationProvider>
     </CacheProvider>

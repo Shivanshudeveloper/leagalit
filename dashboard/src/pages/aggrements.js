@@ -21,8 +21,11 @@ import {
   InputAdornment,
   Divider,
   duration,
+  Chip,
 } from "@mui/material";
 import { DashboardLayout } from "../components/dashboard-layout";
+import Camera from 'react-html5-camera-photo';
+import 'react-html5-camera-photo/build/css/index.css';
 
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -40,6 +43,7 @@ import Dialog from "@mui/material/Dialog";
 import Slide from "@mui/material/Slide";
 
 import CloseIcon from "@mui/icons-material/Close";
+import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
 import { number } from "yup";
 
 import NumberFormat from "react-number-format";
@@ -49,6 +53,7 @@ import useSessionStorage from "src/hooks/useSessionStorage";
 import axios from "axios";
 import { useRouter } from "next/router";
 import { API_SERVICES } from "../config/apiRoutes"
+import { AgreementDocument } from "src/components/agreements/agreementDocument";
 
 var converter = require("number-to-words")
 
@@ -123,8 +128,9 @@ const NumberFormatCustom = React.forwardRef(function NumberFormatCustom(props, r
 });
 
 const Aggrements = () => {
-
   const router = useRouter()
+
+  let [showSharableURL, setShowShareURL] = useState(false)
 
   // landlord information
   let [landlord, setLandlord] = useState({
@@ -266,7 +272,8 @@ const Aggrements = () => {
   function notifyUser(state) {
 
     switch (state) {
-      case 0: setSnackBarMessage("Agreement created")
+      case 0:
+        setSnackBarMessage("Agreement created")
         break
       case 1: setSnackBarMessage("Input field(s) may be vacant")
         break
@@ -318,7 +325,8 @@ const Aggrements = () => {
         setSteps(1);
 
         setToggler(!toggler)
-        notifyUser(0)
+        // notifyUser(0)
+        setShowShareURL(true)
 
         // Reset the state
         setLandlord({
@@ -454,6 +462,20 @@ const Aggrements = () => {
 
   }, [selectedProfile])
 
+
+
+  // Camera
+  const [dataUri, setDataUri] = useState('');
+
+  function handleTakePhoto(uri) {
+    setDataUri(uri);
+    console.log(uri)
+  }
+
+  function handleCameraError(error) {
+    console.log('handleCameraError', error);
+  }
+
   // For the snackbar
   // Opens when a new agreement is created
   const action = (
@@ -471,8 +493,247 @@ const Aggrements = () => {
     </React.Fragment>
   );
 
+  let [agreementSignDialog, setAgreementSignDialog] = useState(false)
+
+  function handleCloseSignAgreement() {
+    setAgreementSignDialog(false)
+  }
+
+  let [agreementToSign, setAgreementToSign] = useState({})
+  let [agreementId, setAgreementId] = useState()
+
+  let [step, setStep] = useState(0)
+
+  useEffect(() => {
+
+    if (!agreementId)
+      return
+
+    axios.get(`${API_SERVICES}/single_agreement/${agreementId}`)
+      .then(res => {
+        setAgreementToSign(res.data)
+      })
+      .catch(err => {
+        console.log(err)
+      })
+
+  }, [agreementId])
+
+  // Current geolocation
+  const [lat, setLat] = useState(null);
+  const [lng, setLng] = useState(null);
+  const [location, setLocation] = useState()
+
+  useEffect(() => {
+
+    if (navigator.geolocation)
+      navigator.geolocation.getCurrentPosition((position) => {
+        setLat(position.coords.latitude);
+        setLng(position.coords.longitude);
+      })
+
+  }, [])
+
+  useEffect(() => {
+    if (!lat || !lng)
+      return
+
+    axios.get(`${API_SERVICES}/get_location/${lat}/${lng}`)
+      .then(res => {
+        setLocation(res.data)
+        console.log(res.data)
+      })
+      .catch(err => console.log(err))
+
+  }, [lat, lng])
+
+  let [fullNameOfSigner, setFullNameOfSigner] = useState()
+
+
   return (
     <>
+      <Dialog fullScreen open={agreementSignDialog} onClose={handleCloseSignAgreement} TransitionComponent={Transition}>
+        <AppBar sx={{ position: "relative", backgroundColor: "#111827" }} id="serviceTopBar">
+          <Toolbar>
+            <IconButton color="inherit" onClick={handleCloseSignAgreement} aria-label="close">
+              <CloseIcon />
+            </IconButton>
+          </Toolbar>
+        </AppBar>
+
+        <Box sx={{ width: "100%" }}>
+          <Container sx={{ mt: 4, mb: 4, padding: "1rem", }}>
+
+            {step === 0 &&
+              <>
+                <AgreementDocument agreement={agreementToSign} />
+
+                <Button variant="outlined"
+                  color="info"
+                  fullWidth
+                  sx={{ m: 2 }}
+                  onClick={() => { setStep(step + 1) }}>
+                  Sign Agreement
+                </Button>
+              </>
+            }
+
+            {step === 1 &&
+              <>
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column" }}>
+
+                  {dataUri ?
+                    <>
+                      <img src={dataUri} />
+
+                      <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                        <Button variant="outlined"
+                          color="info"
+                          sx={{ m: 2 }}
+                          onClick={() => { setDataUri(undefined) }}
+                        >
+                          Retake Photo
+                        </Button>
+                      </div>
+                    </> :
+                    <>
+                      <Camera
+                        onTakePhoto={(uri) => { handleTakePhoto(uri); }}
+                        onCameraError={(error) => { handleCameraError(error); }}
+                        isFullscreen={false}
+                      />
+                    </>
+
+                  }
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                  <Button variant="outlined"
+                    color="info"
+                    sx={{ m: 2 }}
+                    onClick={() => { setStep(step - 1) }}>
+                    Back
+                  </Button>
+                  {dataUri &&
+                    <Button variant="outlined"
+                      color="info"
+                      sx={{ m: 2 }}
+                      onClick={() => {
+                        if (!dataUri)
+                          return
+
+                        setStep(step + 1)
+                      }}
+                    >
+                      Continue
+                    </Button>}
+                </div>
+              </>
+            }
+
+            {step === 2 &&
+              <>
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column" }}>
+                  <h2>User Location :</h2>
+
+                  {!lat ?
+                    <>Please turn on geolocation to continue</> :
+                    <>
+
+                      You are at : {lat} {lng} <br />
+
+                      {location.formattedAddress}
+
+                    </>
+                  }
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                  <Button variant="outlined"
+                    color="info"
+                    sx={{ m: 2 }}
+                    onClick={() => { setStep(step - 1) }}>
+                    Back
+                  </Button>
+                  {lat &&
+                    <Button variant="outlined"
+                      color="info"
+                      sx={{ m: 2 }}
+                      onClick={() => {
+                        if (!dataUri || !lat)
+                          return
+
+                        setStep(step + 1)
+                      }}
+                    >
+                      Continue
+                    </Button>}
+                </div>
+              </>
+            }
+
+            {step === 3 &&
+              <>
+
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column" }}>
+                  <h2>Please enter your full name</h2>
+
+                  <TextField
+                    value={fullNameOfSigner}
+                    onChange={(e) => {
+                      setFullNameOfSigner(e.target.value)
+                    }}
+                    sx={{ m: 2 }} fullWidth label="Full Name" variant="outlined" />
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                  <Button variant="outlined"
+                    color="info"
+                    sx={{ m: 2 }}
+                    onClick={() => { setStep(step - 1) }}>
+                    Back
+                  </Button>
+                  {lat &&
+                    <Button variant="contained"
+                      color="info"
+                      sx={{ m: 2 }}
+                      onClick={() => {
+                        if (!dataUri || !lat || !fullNameOfSigner)
+                          return
+
+                        let baseURL = `${API_SERVICES}/sign_agreement/${agreementId}`;
+
+                        axios.patch(baseURL,
+                          {
+                            signatureDetails: {
+                              latitude: lat,
+                              longitude: lng,
+                              fullNameOfSigner,
+                              signerImg: dataUri
+                            }
+                          }
+                        )
+                          .then((res) => {
+                            console.log(res.data)
+                            handleCloseSignAgreement()
+                            setDataUri(undefined)
+                            setAgreementId(undefined)
+                            setStep(0)
+                          })
+                          .catch((err) => { throw err })
+
+                      }}
+                    >
+                      Submit
+                    </Button>}
+                </div>
+              </>
+            }
+
+          </Container>
+        </Box>
+      </Dialog>
+
       {/* Opens after a new agreement is submitted */}
       <Snackbar
         open={openSnackBar}
@@ -483,6 +744,40 @@ const Aggrements = () => {
         message={snackBarMessage}
         action={action}
       />
+
+      <Dialog open={showSharableURL} onClose={() => { setShowShareURL(false) }} TransitionComponent={Transition}>
+        <AppBar sx={{ position: "relative", backgroundColor: "#111827" }} id="serviceTopBar">
+          <Toolbar>
+            <IconButton color="inherit" onClick={() => { setShowShareURL(false) }} aria-label="close">
+              <CloseIcon />
+            </IconButton>
+          </Toolbar>
+        </AppBar>
+
+        <Typography sx={{ textAlign: "center", m: 1 }} variant="h5">
+          Agreement created
+        </Typography>
+        <Box sx={{ width: "100%" }}>
+          <Container sx={{ mt: 2, mb: 2 }} maxWidth="sm">
+
+
+            <Typography sx={{ mt: 1 }}>
+              <strong>
+                Click to copy : {" "}
+              </strong>
+              {/* Click to copy text to clipboard */}
+              <Chip
+                label={`http://localhost:3000/aggrements`}
+                onClick={() => { navigator.clipboard.writeText(`http://localhost:3000/aggrements`) }}
+              >
+              </Chip>
+
+            </Typography>
+
+          </Container>
+        </Box>
+      </Dialog>
+
 
       <Dialog fullScreen open={open} onClose={handleClose} TransitionComponent={Transition}>
         <AppBar sx={{ position: "relative", backgroundColor: "#111827" }} id="serviceTopBar">
@@ -602,7 +897,7 @@ const Aggrements = () => {
                   {/* Map all the profiles to the menu */}
                   {profiles?.map((profile, i) => {
                     {/* console.log(profile._id) */ }
-                    return <MenuItem key={profile._id} value={profile._id}>{profile.title}</MenuItem>
+                    return <MenuItem key={profile._id} value={profile._id}>{profile.landlordName}</MenuItem>
                   })}
 
                 </TextField>
@@ -1267,8 +1562,9 @@ const Aggrements = () => {
                   <TableCell>Sl No.</TableCell>
                   <TableCell align="center">Title</TableCell>
                   <TableCell align="center">Type</TableCell>
-                  <TableCell align="center">Lease</TableCell>
+                  <TableCell align="center">Landlord</TableCell>
                   <TableCell align="center">Created on</TableCell>
+                  <TableCell align="center">Status</TableCell>
                   <TableCell align="center"></TableCell>
                 </TableRow>
               </TableHead>
@@ -1283,17 +1579,13 @@ const Aggrements = () => {
                     <TableCell align="center">{currentAgreement.template}</TableCell>
                     <TableCell align="center">{currentAgreement.landlord.landlordName}</TableCell>
                     <TableCell align="center">{currentAgreement.date}</TableCell>
+                    <TableCell align="center">{currentAgreement.isSigned ? "Signed" : "Unsigned"}</TableCell>
                     <TableCell align="center">
                       <Tooltip title="View">
                         <IconButton color="primary" aria-label="upload picture" component="span"
                           // OnClick redirect to view agreement page 
                           onClick={
                             () => {
-                              // router.push({
-                              //   pathname: '/viewAgreement',
-                              //   query: { agreementID: `${currentAgreement._id}` }
-                              // })
-
                               window.open(`/viewAgreement?agreementID=${currentAgreement._id}`)
                             }
                           }
@@ -1301,6 +1593,20 @@ const Aggrements = () => {
                           <RemoveRedEyeIcon />
                         </IconButton>
                       </Tooltip>
+
+                      {!currentAgreement.isSigned && <Tooltip title="Sign">
+                        <IconButton color="primary" aria-label="upload picture" component="span"
+                          // OnClick redirect to view agreement page 
+                          onClick={
+                            () => {
+                              setAgreementId(currentAgreement._id)
+                              setAgreementSignDialog(true)
+                            }
+                          }
+                        >
+                          <HistoryEduIcon />
+                        </IconButton>
+                      </Tooltip>}
 
                       <Tooltip sx={{ ml: 1 }} title="Delete">
                         <IconButton color="error" aria-label="upload picture" component="span">
