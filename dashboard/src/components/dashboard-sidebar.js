@@ -28,7 +28,12 @@ const items = [
   {
     href: "/aggrements",
     icon: <ReceiptLongIcon fontSize="small" />,
-    title: "Aggrements",
+    title: "Agreements",
+  },
+  {
+    href: "/sharedAgreements",
+    icon: <ReceiptLongIcon fontSize="small" />,
+    title: "Shared Agreements",
   },
   {
     href: "/profiles",

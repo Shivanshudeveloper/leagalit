@@ -154,9 +154,8 @@ router.post("/agreements", async (req, res) => {
     else if (existingProfile) {
       const newAgreement = new Agreement_Model({
         ...req.body,
-        isSigned: false,
+        isSigned: 0,
         profileId: existingProfile._id,
-        signatureDetails: {},
         userId: req.body.userId
       });
 
@@ -194,8 +193,7 @@ router.post("/agreements", async (req, res) => {
         else {
           const newAgreement = new Agreement_Model({
             ...req.body,
-            signatureDetails: {},
-            isSigned: false,
+            isSigned: 0,
             profileId: savedProfile._id,
             userId: req.body.userId
           });
@@ -216,7 +214,7 @@ router.post("/agreements", async (req, res) => {
   })
 })
 
-router.patch("/sign_agreement/:agreementID", async (req, res) => {
+router.patch("/landlord_sign_agreement/:agreementID", async (req, res) => {
 
   res.setHeader("Content-Type", "application/json");
 
@@ -225,7 +223,26 @@ router.patch("/sign_agreement/:agreementID", async (req, res) => {
   Agreement_Model.updateOne({ _id: req.params.agreementID },
     {
       $set: req.body,
-      isSigned: true
+      isSigned: 1
+    },
+    (err) => {
+      if (err)
+        res.status(400).json(`Error: ${err}`)
+      else
+        res.status(200).send("Patched one agreement")
+    })
+})
+
+router.patch("/tenant_sign_agreement/:agreementID", async (req, res) => {
+
+  res.setHeader("Content-Type", "application/json");
+
+  // console.log(req.body)
+
+  Agreement_Model.updateOne({ _id: req.params.agreementID },
+    {
+      $set: req.body,
+      isSigned: 2
     },
     (err) => {
       if (err)
@@ -252,11 +269,31 @@ router.get("/agreements_for_profile/:userId/:profileId", async (req, res) => {
 })
 
 // Database CRUD Operations
+// Get all the shared agreements
+// GET
+router.get("/shared_agreements/:tenantEmail", async (req, res) => {
+
+  res.setHeader("Content-Type", "application/json");
+
+  console.log("request received")
+
+  Agreement_Model.find({ ...req.params }, (err, agreements) => {
+    if (err)
+      res.status(400).json(`Error: ${err}`)
+    else
+      res.status(200).json(agreements)
+  }
+  )
+})
+
+// Database CRUD Operations
 // Get all the agreements corresponding to a user_id
 // GET
 router.get("/agreements/:userId", async (req, res) => {
 
   res.setHeader("Content-Type", "application/json");
+
+  console.log("request received")
 
   Agreement_Model.find({ userId: req.params.userId }, (err, agreements) => {
     if (err)

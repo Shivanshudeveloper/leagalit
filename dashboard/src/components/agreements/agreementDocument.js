@@ -6,22 +6,6 @@ import { API_SERVICES } from "src/config/apiRoutes";
 export const AgreementDocument = (props) => {
     const { agreement } = props
 
-    const [location, setLocation] = useState()
-
-    useEffect(() => {
-        if (!agreement?.isSigned)
-            return
-
-        axios.get(`${API_SERVICES}/get_location/${agreement?.signatureDetails.latitude}/${agreement?.signatureDetails.longitude}`)
-            .then(res => {
-                setLocation(res.data)
-                console.log(res.data)
-            })
-            .catch(err => console.log(err))
-
-    }, [props?.agreement?.signatureDetails])
-
-
     return (< div >
         <h2>RESIDENTIAL RENTAL AGREEMENT</h2>
 
@@ -272,17 +256,35 @@ export const AgreementDocument = (props) => {
         <br />
 
         {
-            agreement?.isSigned &&
+            agreement?.isSigned !== 0 &&
             <div style={{ display: "flex", alignItems: "center", flexDirection: "column" }}>
                 <h2>
                     <strong>Landlord</strong>
                 </h2>
                 <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-                    <img style={{ width: "5rem", height: "5rem", marginRight: "1rem" }} src={agreement.signatureDetails.signerImg} />
+                    <img style={{ width: "5rem", height: "5rem", marginRight: "1rem" }} src={agreement?.landlordSignatureDetails?.signerImg} />
                     <div>
-                        {agreement.signatureDetails.fullNameOfSigner}
+                        {agreement?.landlordSignatureDetails?.fullNameOfSigner}
                         <br />
-                        {location?.formattedAddress}
+                        {agreement?.landlordSignatureDetails?.address}
+                    </div>
+
+                </div>
+            </div>
+        }
+
+        {
+            agreement?.isSigned === 2 &&
+            <div style={{ display: "flex", alignItems: "center", flexDirection: "column" }}>
+                <h2>
+                    <strong>Tenant</strong>
+                </h2>
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                    <img style={{ width: "5rem", height: "5rem", marginRight: "1rem" }} src={agreement?.tenantSignatureDetails?.signerImg} />
+                    <div>
+                        {agreement?.tenantSignatureDetails?.fullNameOfSigner}
+                        <br />
+                        {agreement?.tenantSignatureDetails?.address}
                     </div>
 
                 </div>

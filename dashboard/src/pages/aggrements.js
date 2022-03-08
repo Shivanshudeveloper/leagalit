@@ -392,13 +392,12 @@ const Aggrements = () => {
   let [agreements, setAgreements] = useState([])
   let [toggler, setToggler] = useState(false)
   useEffect(async () => {
-
     if (!userId)
       return
 
     let baseURL = `${API_SERVICES}/agreements/${userId}`;
 
-    await axios.get(baseURL)
+    axios.get(baseURL)
       .then((res) => {
         console.log(res.data)
         setAgreements(res.data.reverse())
@@ -476,6 +475,12 @@ const Aggrements = () => {
     console.log('handleCameraError', error);
   }
 
+  let [tenantEmail, setTenantEmail] = useState("")
+
+
+  const validEmail = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
+
   // For the snackbar
   // Opens when a new agreement is created
   const action = (
@@ -525,7 +530,6 @@ const Aggrements = () => {
   const [location, setLocation] = useState()
 
   useEffect(() => {
-
     if (navigator.geolocation)
       navigator.geolocation.getCurrentPosition((position) => {
         setLat(position.coords.latitude);
@@ -552,7 +556,7 @@ const Aggrements = () => {
 
   return (
     <>
-      <Dialog fullScreen open={agreementSignDialog} onClose={handleCloseSignAgreement} TransitionComponent={Transition}>
+      <Dialog maxWidth="lg" open={agreementSignDialog} onClose={handleCloseSignAgreement} TransitionComponent={Transition}>
         <AppBar sx={{ position: "relative", backgroundColor: "#111827" }} id="serviceTopBar">
           <Toolbar>
             <IconButton color="inherit" onClick={handleCloseSignAgreement} aria-label="close">
@@ -561,7 +565,7 @@ const Aggrements = () => {
           </Toolbar>
         </AppBar>
 
-        <Box sx={{ width: "100%" }}>
+        <Box sx={{ width: "100%", padding: "0.5rem" }}>
           <Container sx={{ mt: 4, mb: 4, padding: "1rem", }}>
 
             {step === 0 &&
@@ -586,7 +590,7 @@ const Aggrements = () => {
                     <>
                       <img src={dataUri} />
 
-                      <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "15rem" }}>
                         <Button variant="outlined"
                           color="info"
                           sx={{ m: 2 }}
@@ -642,7 +646,7 @@ const Aggrements = () => {
 
                       You are at : {lat} {lng} <br />
 
-                      {location.formattedAddress}
+                      {location?.formattedAddress}
 
                     </>
                   }
@@ -693,7 +697,45 @@ const Aggrements = () => {
                     onClick={() => { setStep(step - 1) }}>
                     Back
                   </Button>
-                  {lat &&
+                  {(fullNameOfSigner) &&
+                    <Button variant="outlined"
+                      color="info"
+                      sx={{ m: 2 }}
+                      onClick={() => {
+                        if (!dataUri || !lat)
+                          return
+
+                        setStep(step + 1)
+                      }}
+                    >
+                      Continue
+                    </Button>}
+                </div>
+              </>
+            }
+
+            {step === 4 &&
+              <>
+
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column" }}>
+                  <h2>Please enter your tenant's email address</h2>
+
+                  <TextField
+                    value={tenantEmail}
+                    onChange={(e) => {
+                      setTenantEmail(e.target.value)
+                    }}
+                    sx={{ m: 2 }} fullWidth label="Tenant's Email" variant="outlined" />
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                  <Button variant="outlined"
+                    color="info"
+                    sx={{ m: 2 }}
+                    onClick={() => { setStep(step - 1) }}>
+                    Back
+                  </Button>
+                  {validEmail.test(tenantEmail) &&
                     <Button variant="contained"
                       color="info"
                       sx={{ m: 2 }}
@@ -701,16 +743,18 @@ const Aggrements = () => {
                         if (!dataUri || !lat || !fullNameOfSigner)
                           return
 
-                        let baseURL = `${API_SERVICES}/sign_agreement/${agreementId}`;
+                        let baseURL = `${API_SERVICES}/landlord_sign_agreement/${agreementId}`;
 
                         axios.patch(baseURL,
                           {
-                            signatureDetails: {
+                            landlordSignatureDetails: {
                               latitude: lat,
                               longitude: lng,
                               fullNameOfSigner,
-                              signerImg: dataUri
-                            }
+                              signerImg: dataUri,
+                              address: location?.formattedAddress
+                            },
+                            tenantEmail
                           }
                         )
                           .then((res) => {
@@ -719,6 +763,9 @@ const Aggrements = () => {
                             setDataUri(undefined)
                             setAgreementId(undefined)
                             setStep(0)
+                            setFullNameOfSigner("")
+                            setTenantEmail("")
+                            setToggler(!toggler)
                           })
                           .catch((err) => { throw err })
 
@@ -729,6 +776,7 @@ const Aggrements = () => {
                 </div>
               </>
             }
+
 
           </Container>
         </Box>
@@ -1579,7 +1627,9 @@ const Aggrements = () => {
                     <TableCell align="center">{currentAgreement.template}</TableCell>
                     <TableCell align="center">{currentAgreement.landlord.landlordName}</TableCell>
                     <TableCell align="center">{currentAgreement.date}</TableCell>
-                    <TableCell align="center">{currentAgreement.isSigned ? "Signed" : "Unsigned"}</TableCell>
+                    <TableCell align="center">{currentAgreement.isSigned === 1 ?
+                      "Landlord Signed"
+                      : currentAgreement.isSigned === 2 ? "Signed" : "Unsigned"}</TableCell>
                     <TableCell align="center">
                       <Tooltip title="View">
                         <IconButton color="primary" aria-label="upload picture" component="span"

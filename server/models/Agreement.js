@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 // Actual Schema___________________________________________________________________________________________________________
 const AgreementSchema = new mongoose.Schema({
     isSigned: {
-        type: Boolean,
+        type: Number,
         required: true
     },
     title: {
@@ -42,9 +42,13 @@ const AgreementSchema = new mongoose.Schema({
         type: Object,
         required: true
     },
-    signatureDetails: {
+    landlordSignatureDetails: {
         type: Object,
-        required: true
+        required: false
+    },
+    tenantSignatureDetails: {
+        type: Object,
+        required: false
     },
     profileId: {
         type: String,
@@ -53,6 +57,10 @@ const AgreementSchema = new mongoose.Schema({
     userId: {
         type: String,
         required: true
+    },
+    tenantEmail: {
+        type: String,
+        required: false
     }
 })
 
