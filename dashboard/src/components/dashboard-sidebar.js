@@ -18,6 +18,7 @@ import { NavItem } from "./nav-item";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
 
 const items = [
   {
@@ -32,7 +33,7 @@ const items = [
   },
   {
     href: "/sharedAgreements",
-    icon: <ReceiptLongIcon fontSize="small" />,
+    icon: <HistoryEduIcon fontSize="small" />,
     title: "Shared Agreements",
   },
   {

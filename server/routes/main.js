@@ -159,13 +159,13 @@ router.post("/agreements", async (req, res) => {
         userId: req.body.userId
       });
 
-      newAgreement.save((agreementErr) => {
+      newAgreement.save((agreementErr, savedAgreement) => {
         if (agreementErr) {
           console.log(agreementErr)
           res.status(400).json(`Agreement Error: ${agreementErr}`)
         }
         else {
-          res.status(200).send("created a new agreement")
+          res.status(200).send(savedAgreement._id)
 
         }
       })
@@ -204,7 +204,7 @@ router.post("/agreements", async (req, res) => {
               res.status(400).json(`Error: ${agreementErr}`)
             }
             else {
-              res.status(200).send("created a new agreement")
+              res.status(200).send(savedAgreement._id)
             }
           })
         }

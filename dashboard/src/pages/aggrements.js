@@ -130,7 +130,7 @@ const NumberFormatCustom = React.forwardRef(function NumberFormatCustom(props, r
 const Aggrements = () => {
   const router = useRouter()
 
-  let [showSharableURL, setShowShareURL] = useState(false)
+  // let [showSharableURL, setShowShareURL] = useState(false)
 
   // landlord information
   let [landlord, setLandlord] = useState({
@@ -325,8 +325,8 @@ const Aggrements = () => {
         setSteps(1);
 
         setToggler(!toggler)
-        // notifyUser(0)
-        setShowShareURL(true)
+        setAgreementId(res.data)
+        setAgreementSignDialog(true)
 
         // Reset the state
         setLandlord({
@@ -572,13 +572,20 @@ const Aggrements = () => {
               <>
                 <AgreementDocument agreement={agreementToSign} />
 
-                <Button variant="outlined"
-                  color="info"
-                  fullWidth
-                  sx={{ m: 2 }}
-                  onClick={() => { setStep(step + 1) }}>
-                  Sign Agreement
-                </Button>
+
+                <Stack sx={{ float: "right", mt: 2, mb: 2 }} direction="row" spacing={1}>
+                  <Button variant="outlined" color="info" onClick={handleCloseSignAgreement} sx={{ width: "100px" }}>
+                    Close
+                  </Button>
+                  <Button variant="outlined"
+                    color="info"
+                    // fullWidth
+                    sx={{ m: 2 }}
+                    onClick={() => { setStep(step + 1) }}>
+                    Sign Agreement
+                  </Button>
+                </Stack>
+
               </>
             }
 
@@ -792,40 +799,6 @@ const Aggrements = () => {
         message={snackBarMessage}
         action={action}
       />
-
-      <Dialog open={showSharableURL} onClose={() => { setShowShareURL(false) }} TransitionComponent={Transition}>
-        <AppBar sx={{ position: "relative", backgroundColor: "#111827" }} id="serviceTopBar">
-          <Toolbar>
-            <IconButton color="inherit" onClick={() => { setShowShareURL(false) }} aria-label="close">
-              <CloseIcon />
-            </IconButton>
-          </Toolbar>
-        </AppBar>
-
-        <Typography sx={{ textAlign: "center", m: 1 }} variant="h5">
-          Agreement created
-        </Typography>
-        <Box sx={{ width: "100%" }}>
-          <Container sx={{ mt: 2, mb: 2 }} maxWidth="sm">
-
-
-            <Typography sx={{ mt: 1 }}>
-              <strong>
-                Click to copy : {" "}
-              </strong>
-              {/* Click to copy text to clipboard */}
-              <Chip
-                label={`http://localhost:3000/aggrements`}
-                onClick={() => { navigator.clipboard.writeText(`http://localhost:3000/aggrements`) }}
-              >
-              </Chip>
-
-            </Typography>
-
-          </Container>
-        </Box>
-      </Dialog>
-
 
       <Dialog fullScreen open={open} onClose={handleClose} TransitionComponent={Transition}>
         <AppBar sx={{ position: "relative", backgroundColor: "#111827" }} id="serviceTopBar">
@@ -1627,9 +1600,18 @@ const Aggrements = () => {
                     <TableCell align="center">{currentAgreement.template}</TableCell>
                     <TableCell align="center">{currentAgreement.landlord.landlordName}</TableCell>
                     <TableCell align="center">{currentAgreement.date}</TableCell>
-                    <TableCell align="center">{currentAgreement.isSigned === 1 ?
-                      "Landlord Signed"
-                      : currentAgreement.isSigned === 2 ? "Signed" : "Unsigned"}</TableCell>
+                    <TableCell align="center">
+
+                      <Chip
+                        label={currentAgreement.isSigned === 1 ?
+                          "Landlord Signed"
+                          : currentAgreement.isSigned === 2 ? "Signed" : "Unsigned"}
+                        color={currentAgreement.isSigned === 1 ?
+                          "warning"
+                          : currentAgreement.isSigned === 2 ? "success" : "error"}
+                      />
+
+                    </TableCell>
                     <TableCell align="center">
                       <Tooltip title="View">
                         <IconButton color="primary" aria-label="upload picture" component="span"

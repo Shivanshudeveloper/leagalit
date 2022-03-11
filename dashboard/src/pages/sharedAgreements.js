@@ -237,13 +237,18 @@ const SharedAgreements = () => {
                             <>
                                 <AgreementDocument agreement={agreementToSign} />
 
-                                <Button variant="outlined"
-                                    color="info"
-                                    fullWidth
-                                    sx={{ m: 2 }}
-                                    onClick={() => { setStep(step + 1) }}>
-                                    Sign Agreement
-                                </Button>
+                                <Stack sx={{ float: "right", mt: 2, mb: 2 }} direction="row" spacing={1}>
+                                    <Button variant="outlined" color="info" onClick={handleCloseSignAgreement} sx={{ width: "100px" }}>
+                                        Close
+                                    </Button>
+                                    <Button variant="outlined"
+                                        color="info"
+                                        // fullWidth
+                                        sx={{ m: 2 }}
+                                        onClick={() => { setStep(step + 1) }}>
+                                        Sign Agreement
+                                    </Button>
+                                </Stack>
                             </>
                         }
 
@@ -444,9 +449,18 @@ const SharedAgreements = () => {
                                         <TableCell align="center">{currentAgreement.template}</TableCell>
                                         <TableCell align="center">{currentAgreement.landlord.landlordName}</TableCell>
                                         <TableCell align="center">{currentAgreement.date}</TableCell>
-                                        <TableCell align="center">{currentAgreement.isSigned === 1 ?
-                                            "Landlord Signed"
-                                            : currentAgreement.isSigned === 2 ? "Signed" : "Unsigned"}</TableCell>
+                                        <TableCell align="center">
+
+                                            <Chip
+                                                label={currentAgreement.isSigned === 1 ?
+                                                    "Landlord Signed"
+                                                    : currentAgreement.isSigned === 2 ? "Signed" : "Unsigned"}
+                                                color={currentAgreement.isSigned === 1 ?
+                                                    "warning"
+                                                    : currentAgreement.isSigned === 2 ? "success" : "error"}
+                                            />
+
+                                        </TableCell>
                                         <TableCell align="center">
                                             <Tooltip title="View">
                                                 <IconButton color="primary" aria-label="upload picture" component="span"
