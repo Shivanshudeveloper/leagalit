@@ -9,6 +9,7 @@ import { theme } from '../theme';
 import Layout from "src/layout/Layout";
 import { app } from "../Firebase/index";
 import withAuth from "src/components/withAuth";
+import "./styles.css"
 
 const clientSideEmotionCache = createEmotionCache();
 

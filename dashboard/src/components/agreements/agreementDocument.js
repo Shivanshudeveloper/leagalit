@@ -2,6 +2,8 @@ import PageStyles from "./PageStyles.module.css"
 import { useState, useEffect } from "react";
 import axios from "axios"
 import { API_SERVICES } from "src/config/apiRoutes";
+var QRCode = require('qrcode.react');
+import { Grid } from "@mui/material"
 
 export const AgreementDocument = (props) => {
     const { agreement } = props
@@ -172,18 +174,31 @@ export const AgreementDocument = (props) => {
         </p>
         <br />
 
-        <div style={{ display: "flex", justifyContent: "space-around", pageBreakAfter: "always" }} >
+        <Grid container spacing={2}>
 
-            <div>
-                <p>
-                    Lessor,
-                </p>
-                <br /><br />
+            <Grid item xs={6}>
+                <div style={{ padding: "1rem", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                    <p>
+                        Lessor,
+                    </p>
+                    <br />
 
-                <p>
-                    {agreement?.landlord?.landlordName}
-                </p>
-                <p>
+                    <p style={{ fontFamily: 'Dancing Script', fontSize: "2.5rem" }}>
+                        {/* {agreement?.landlord?.landlordName} */}
+                        {agreement?.landlordSignatureDetails?.fullNameOfSigner}
+                    </p>
+
+                    {
+                        agreement?.isSigned !== 0 &&
+                        <QRCode style={{ marginBottom: "0.5rem" }} value={`http://demo.com?id=${agreement._id}`} />
+                    }
+
+
+                    <p>
+                        {agreement?.landlordSignatureDetails?.address}
+                    </p>
+
+                    {/* <p>
                     {agreement?.landlord?.address1}
                 </p>
                 <p>
@@ -191,29 +206,46 @@ export const AgreementDocument = (props) => {
                 </p>
                 <p>
                     {agreement?.landlord?.city}, {agreement?.landlord?.state}, {agreement?.landlord?.pincode}
-                </p>
-                <br /><br />
+                </p> */}
+                    <br />
 
-                <p>
-                    WITNESS ONE
-                </p>
-                <br /><br />
-                <p>
-                    [Name & Address]
-                </p>
 
-            </div>
+                    <p>
+                        WITNESS ONE
+                    </p>
+                    <br /><br />
+                    <p>
+                        [Name & Address]
+                    </p>
 
-            <div>
-                <p>
-                    Lessee,
-                </p>
-                <br /><br />
+                </div>
+            </Grid>
 
-                <p>
-                    [Name]
-                </p>
-                <p>
+            <Grid item xs={6}>
+
+                <div style={{ padding: "1rem", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                    <p>
+                        Lessee,
+                    </p>
+                    <br />
+
+                    <p style={{ fontFamily: 'Dancing Script', fontSize: "2.5rem" }}>
+                        {/* {agreement?.landlord?.landlordName} */}
+                        {agreement?.tenantSignatureDetails?.fullNameOfSigner}
+                    </p>
+
+                    {
+                        agreement?.isSigned === 2 &&
+                        <QRCode style={{ marginBottom: "0.5rem" }} value={`http://demo.com?id=${agreement._id}`} />
+                    }
+
+                    <p>
+                        {agreement?.tenantSignatureDetails?.address}
+                    </p>
+
+
+
+                    {/* <p>
                     [Address Line 1]
                 </p>
                 <p>
@@ -221,19 +253,24 @@ export const AgreementDocument = (props) => {
                 </p>
                 <p>
                     [City, State, Pin Code]
-                </p>
-                <br /><br />
+                </p> */}
+                    <br />
 
-                <p>
-                    WITNESS TWO
-                </p>
-                <br /><br />
-                <p>
-                    [Name & Address]
-                </p>
+                    <p>
+                        WITNESS TWO
+                    </p>
+                    <br /><br />
+                    <p>
+                        [Name & Address]
+                    </p>
 
-            </div>
-        </div>
+                </div>
+            </Grid>
+
+        </Grid>
+
+        <div style={{ pageBreakAfter: "always" }}></div>
+
         <br /><br /><br />
 
         <div style={{ display: "flex", justifyContent: "center" }}>
