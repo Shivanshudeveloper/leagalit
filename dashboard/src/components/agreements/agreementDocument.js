@@ -190,7 +190,7 @@ export const AgreementDocument = (props) => {
 
                     {
                         agreement?.isSigned !== 0 &&
-                        <QRCode style={{ marginBottom: "0.5rem" }} value={`http://demo.com?id=${agreement._id}`} />
+                        <QRCode style={{ marginBottom: "0.5rem" }} value={`http://demo.com?id=${agreement?._id}`} />
                     }
 
 
@@ -236,7 +236,7 @@ export const AgreementDocument = (props) => {
 
                     {
                         agreement?.isSigned === 2 &&
-                        <QRCode style={{ marginBottom: "0.5rem" }} value={`http://demo.com?id=${agreement._id}`} />
+                        <QRCode style={{ marginBottom: "0.5rem" }} value={`http://demo.com?id=${agreement?._id}`} />
                     }
 
                     <p>
@@ -292,41 +292,44 @@ export const AgreementDocument = (props) => {
         </p>
         <br />
 
-        {
-            agreement?.isSigned !== 0 &&
-            <div style={{ display: "flex", alignItems: "center", flexDirection: "column" }}>
-                <h2>
-                    <strong>Landlord</strong>
-                </h2>
-                <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-                    <img style={{ width: "5rem", height: "5rem", marginRight: "1rem" }} src={agreement?.landlordSignatureDetails?.signerImg} />
-                    <div>
-                        {agreement?.landlordSignatureDetails?.fullNameOfSigner}
-                        <br />
-                        {agreement?.landlordSignatureDetails?.address}
+        {/* <>
+            {
+                agreement?.isSigned !== 0 &&
+                <div style={{ display: "flex", alignItems: "center", flexDirection: "column" }}>
+                    <h2>
+                        <strong>Landlord</strong>
+                    </h2>
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                        <img style={{ width: "5rem", height: "5rem", marginRight: "1rem" }} src={agreement?.landlordSignatureDetails?.signerImg} />
+                        <div>
+                            {agreement?.landlordSignatureDetails?.fullNameOfSigner}
+                            <br />
+                            {agreement?.landlordSignatureDetails?.address}
+                        </div>
+
                     </div>
-
                 </div>
-            </div>
-        }
+            }
 
-        {
-            agreement?.isSigned === 2 &&
-            <div style={{ display: "flex", alignItems: "center", flexDirection: "column" }}>
-                <h2>
-                    <strong>Tenant</strong>
-                </h2>
-                <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-                    <img style={{ width: "5rem", height: "5rem", marginRight: "1rem" }} src={agreement?.tenantSignatureDetails?.signerImg} />
-                    <div>
-                        {agreement?.tenantSignatureDetails?.fullNameOfSigner}
-                        <br />
-                        {agreement?.tenantSignatureDetails?.address}
+            {
+                agreement?.isSigned === 2 &&
+                <div style={{ display: "flex", alignItems: "center", flexDirection: "column" }}>
+                    <h2>
+                        <strong>Tenant</strong>
+                    </h2>
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                        <img style={{ width: "5rem", height: "5rem", marginRight: "1rem" }} src={agreement?.tenantSignatureDetails?.signerImg} />
+                        <div>
+                            {agreement?.tenantSignatureDetails?.fullNameOfSigner}
+                            <br />
+                            {agreement?.tenantSignatureDetails?.address}
+                        </div>
+
                     </div>
-
                 </div>
-            </div>
-        }
+            }
+        </> */}
+
     </div >
     )
 };

@@ -198,7 +198,7 @@ router.post("/agreements", async (req, res) => {
             userId: req.body.userId
           });
 
-          newAgreement.save((agreementErr) => {
+          newAgreement.save((agreementErr, savedAgreement) => {
             if (agreementErr) {
               console.log(agreementErr)
               res.status(400).json(`Error: ${agreementErr}`)
