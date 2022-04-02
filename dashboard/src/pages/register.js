@@ -59,7 +59,6 @@ const Register = () => {
         )
     }),
     onSubmit: (values) => {
-      router.push("/");
 
       createUserWithEmailAndPassword(auth, formik.values.email, formik.values.password)
         .then((result) => {
@@ -68,6 +67,7 @@ const Register = () => {
 
           sessionStorage.setItem("userId", newUser.uid);
           sessionStorage.setItem("userEmail", newUser.email);
+          router.push("/");
         })
         .catch((error) => {
           const errorCode = error.code;

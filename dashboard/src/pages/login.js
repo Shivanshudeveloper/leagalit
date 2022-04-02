@@ -32,14 +32,13 @@ const Login = () => {
           'Password is required')
     }),
     onSubmit: (values) => {
-      router.push("/");
       signInWithEmailAndPassword(auth, formik.values.email, formik.values.password)
         .then((userCredential) => {
           // Signed in
           const user = userCredential.user;
-
           sessionStorage.setItem("userId", user.uid);
           sessionStorage.setItem("userEmail", user.email);
+          router.push("/");
         })
         .catch((error) => {
           const errorCode = error.code;
