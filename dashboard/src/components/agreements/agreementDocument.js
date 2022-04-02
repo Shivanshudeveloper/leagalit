@@ -190,7 +190,7 @@ export const AgreementDocument = (props) => {
 
                     {
                         agreement?.isSigned !== 0 &&
-                        <QRCode style={{ marginBottom: "0.5rem" }} value={`http://demo.com?id=${agreement?._id}`} />
+                        <QRCode style={{ marginBottom: "0.5rem" }} value={`https://legalitsaas.netlify.app?id=${agreement?._id}`} />
                     }
 
 
